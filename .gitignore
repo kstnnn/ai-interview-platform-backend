@@ -40,4 +40,4 @@ out/
 .kotlin
 
 ### env ###
-.env
+.env.properties
