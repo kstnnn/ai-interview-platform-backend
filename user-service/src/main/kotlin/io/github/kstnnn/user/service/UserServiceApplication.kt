@@ -1,4 +1,4 @@
-package io.github.kstnnn.user_service
+package io.github.kstnnn.user.service
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
