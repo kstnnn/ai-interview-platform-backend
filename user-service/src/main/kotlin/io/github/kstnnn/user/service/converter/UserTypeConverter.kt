@@ -6,9 +6,7 @@ import jakarta.persistence.Converter
 
 @Converter(autoApply = true)
 class UserTypeConverter : AttributeConverter<UserType, String> {
-    override fun convertToDatabaseColumn(attribute: UserType?): String? =
-        attribute?.name
+    override fun convertToDatabaseColumn(attribute: UserType?): String? = attribute?.name
 
-    override fun convertToEntityAttribute(dbData: String?): UserType? =
-        dbData?.let { UserType.valueOf(it) }
+    override fun convertToEntityAttribute(dbData: String?): UserType? = dbData?.let { UserType.valueOf(it) }
 }

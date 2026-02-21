@@ -18,29 +18,20 @@ data class User(
     @GeneratedValue
     @UuidGenerator(style = UuidGenerator.Style.VERSION_7)
     val id: UUID,
-
     @Column(nullable = false)
     val providerUserId: String,
-
     @Column(nullable = false)
     val email: String,
-
     @Column(nullable = false)
     val userType: UserType,
-
     @Column(nullable = false)
     val userStatus: UserStatus,
-
     @Column(nullable = false)
     val createdAt: Instant,
-
     @Column(nullable = false)
     var firstName: String,
-
     @Column(nullable = true)
     var lastName: String?,
-
     @Column(nullable = false)
-    var emailVerified: Boolean = false
-) {
-}
+    var emailVerified: Boolean = false,
+)
