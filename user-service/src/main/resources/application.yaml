@@ -26,5 +26,5 @@ spring:
     show-sql: true
 
   liquibase:
-    enabled: off
-    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    enabled: on
+    change-log: classpath:/db.changelog/db.changelog-master.yaml
