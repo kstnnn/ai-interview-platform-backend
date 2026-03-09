@@ -19,6 +19,8 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      auto-commit: false
 
   jpa:
     hibernate:
@@ -29,3 +31,7 @@ spring:
   liquibase:
     enabled: on
     change-log: classpath:/db.changelog/db.changelog-master.yaml
+
+  threads:
+    virtual:
+      enabled: true
