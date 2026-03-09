@@ -1,6 +1,8 @@
 package io.github.kstnnn.user.service.service.impl;
 
-import io.github.kstnnn.user.service.entity.User;
+import io.github.kstnnn.user.service.dto.UserCreateRequestDto;
+import io.github.kstnnn.user.service.dto.UserResponseDto;
+import io.github.kstnnn.user.service.exception.UserNotFoundException;
 import io.github.kstnnn.user.service.repository.UserRepository;
 import io.github.kstnnn.user.service.service.UserService;
 import java.util.UUID;
@@ -14,15 +16,17 @@ public class UserServiceImpl implements UserService {
   private final UserRepository userRepository;
 
   @Override
-  public void create(User newUser) {
-    userRepository.save(newUser);
+  public UserResponseDto create(UserCreateRequestDto newUser) {
+    return UserResponseDto.toDto(userRepository.save(newUser.toEntity()));
   }
 
   @Override
-  public void deleteById(UUID id) {}
+  public void deleteById(UUID id) {
+    userRepository.deleteById(id);
+  }
 
   @Override
-  public User getById(UUID id) {
-    return userRepository.getReferenceById(id);
+  public UserResponseDto getById(UUID id) {
+    return userRepository.findResponseDtoById(id).orElseThrow(() -> new UserNotFoundException(id));
   }
 }

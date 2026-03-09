@@ -1,12 +1,13 @@
 package io.github.kstnnn.user.service.service;
 
-import io.github.kstnnn.user.service.entity.User;
+import io.github.kstnnn.user.service.dto.UserCreateRequestDto;
+import io.github.kstnnn.user.service.dto.UserResponseDto;
 import java.util.UUID;
 
 public interface UserService {
-  User getById(UUID id);
+  UserResponseDto getById(UUID id);
 
-  void create(User newUser);
+  void create(UserCreateRequestDto newUser);
 
   void deleteById(UUID id);
 }
