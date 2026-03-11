@@ -1,16 +1,24 @@
 databaseChangeLog:
-  - include:
-      file: changesets/001-create-users-table.sql
-      relativeToChangelogFile: true
+      - include:
+              file: changesets/001-create-users-table.sql
+              relativeToChangelogFile: true
 
-  - include:
-      file: changesets/002-add-users-unique-constraints.sql
-      relativeToChangelogFile: true
+      - include:
+              file: changesets/002-add-users-unique-constraints.sql
+              relativeToChangelogFile: true
 
-  - include:
-      file: changesets/003-add-users-check-constraints.sql
-      relativeToChangelogFile: true
+      - include:
+              file: changesets/003-add-users-check-constraints.sql
+              relativeToChangelogFile: true
 
-  - include:
-      file: changesets/004-add-users-indexes.sql
-      relativeToChangelogFile: true
+      - include:
+              file: changesets/004-add-users-indexes.sql
+              relativeToChangelogFile: true
+
+      - include:
+              file: changesets/005-add-users-version-column.sql
+              relativeToChangelogFile: true
+
+      - include:
+              file: changesets/006-create-users-roles-table.sql
+              relativeToChangelogFile: true
