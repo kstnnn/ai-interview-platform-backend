@@ -13,4 +13,10 @@ public class GlobalExceptionHandler {
   public ResponseEntity<Map<String, String>> handleUserNotFound(UserNotFoundException ex) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
   }
+
+  @ExceptionHandler(UserAlreadyExistsException.class)
+  public ResponseEntity<Map<String, String>> handleUserAlreadyExists(
+      UserAlreadyExistsException ex) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
+  }
 }

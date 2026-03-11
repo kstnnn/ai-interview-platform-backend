@@ -12,13 +12,10 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http.authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers("/api/v1/users/**")
-                    .hasAuthority("ROLE_USER")
-                    .anyRequest()
-                    .permitAll())
+  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http.csrf(t -> t.disable())
+        .authorizeHttpRequests(
+            auth -> auth.requestMatchers("/api/v1/users/**").permitAll().anyRequest().permitAll())
         .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()));
     return http.build();
   }

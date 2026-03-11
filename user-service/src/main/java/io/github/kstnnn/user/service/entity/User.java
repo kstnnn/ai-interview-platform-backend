@@ -53,7 +53,8 @@ public class User {
   private UserStatus userStatus;
 
   @Column(nullable = false)
-  private Instant createdAt;
+  @Builder.Default
+  private Instant createdAt = Instant.now();
 
   @Column(nullable = false)
   private String firstName;

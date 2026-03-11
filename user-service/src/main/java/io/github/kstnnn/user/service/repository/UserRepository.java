@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
   Optional<UserResponseDto> findResponseDtoById(UUID id);
+
+  Optional<User> findUserByProviderUserId(String id);
 }
