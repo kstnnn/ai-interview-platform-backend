@@ -2,9 +2,12 @@ services:
   db:
     image: postgres:17
     restart: always
+    env_file:
+      - .env.local
+      - ../.env
     environment:
       POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USERNAME: ${DB_USERNAME}
+      POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "${DB_PORT}:5432"

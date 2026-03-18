@@ -1,4 +1,4 @@
 rootProject.name = "ai-interview-platform-backend"
 
-include("common-logging")
+include("common")
 include("user-service")

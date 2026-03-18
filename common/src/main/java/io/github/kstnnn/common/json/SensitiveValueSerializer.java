@@ -1,4 +1,4 @@
-package io.github.kstnnn.common.logging.json;
+package io.github.kstnnn.common.json;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
