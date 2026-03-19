@@ -1,7 +1,6 @@
 package io.github.kstnnn.common.json;
 
 import com.fasterxml.jackson.databind.BeanDescription;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
@@ -15,13 +14,6 @@ public class SensitiveBeanSerializerModifier extends BeanSerializerModifier {
       SerializationConfig config,
       BeanDescription beanDesc,
       List<BeanPropertyWriter> beanProperties) {
-
-    JavaType javaType = beanDesc.getType();
-    if (javaType.isPrimitive()
-        || javaType.isArrayType()
-        || javaType.isTypeOrSubTypeOf(String.class)) {
-      return beanProperties;
-    }
 
     for (BeanPropertyWriter writer : beanProperties) {
       if (writer.getMember().getAnnotated().getAnnotation(Sensitive.class) != null) {
