@@ -8,44 +8,46 @@ import io.github.kstnnn.user.service.repository.UserRepository;
 import io.github.kstnnn.user.service.service.UserService;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
 
   private final UserRepository userRepository;
-  private final TransactionTemplate transactionTemplate;
+
+  // private final TransactionTemplate transactionTemplate;
 
   @Override
   public UserResponseDto create(Jwt jwt, UserCreateRequestDto dto) {
+    log.info("User sign up attempt : {}", dto);
+
     String providerUserId = jwt.getSubject();
 
+    log.info("Checking if the user already exists");
     var existing = userRepository.findUserByProviderUserId(providerUserId);
     if (existing.isPresent()) {
       throw new UserAlreadyExistsException(dto.email());
     }
 
-    var newUser = dto.toEntity();
-    newUser.setEmail(dto.email());
-    newUser.setProviderUserId(providerUserId);
+    log.info("Saving new user");
+    var newUser = userRepository.save(dto.toEntity());
 
-    return UserResponseDto.toDto(
-        transactionTemplate.execute(
-            status -> {
-              return userRepository.save(newUser);
-            }));
+    return UserResponseDto.toDto(newUser);
   }
 
   @Override
   public void deleteById(UUID id) {
+    log.info("Delete user with id {} attempt", id);
     userRepository.deleteById(id);
   }
 
   @Override
   public UserResponseDto getById(UUID id) {
+    log.info("Get user by id {} attempt", id);
     return userRepository.findResponseDtoById(id).orElseThrow(() -> new UserNotFoundException(id));
   }
 }

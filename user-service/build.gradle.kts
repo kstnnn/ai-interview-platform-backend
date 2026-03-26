@@ -29,11 +29,15 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":common"))
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-liquibase")
     implementation("org.projectlombok:lombok")
+    implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
+    testImplementation("org.springframework.boot:spring-boot-starter-opentelemetry-test")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     annotationProcessor("org.projectlombok:lombok")
     runtimeOnly("org.postgresql:postgresql")
     testImplementation("org.springframework.boot:spring-boot-starter-liquibase-test")
