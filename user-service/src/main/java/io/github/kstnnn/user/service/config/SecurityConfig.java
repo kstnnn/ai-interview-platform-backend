@@ -20,7 +20,9 @@ public class SecurityConfig {
     http.csrf(t -> t.disable())
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers("/api/v1/users/**")
+                auth.requestMatchers("/api/v1/users")
+                    .permitAll()
+                    .requestMatchers("/api/v1/users/**")
                     .hasAnyRole("CANDIDATE", "MANAGER")
                     .requestMatchers("/actuator/**")
                     .permitAll()

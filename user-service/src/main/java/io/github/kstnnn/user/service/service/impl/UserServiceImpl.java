@@ -9,7 +9,6 @@ import io.github.kstnnn.user.service.service.UserService;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,16 +18,11 @@ public class UserServiceImpl implements UserService {
 
   private final UserRepository userRepository;
 
-  // private final TransactionTemplate transactionTemplate;
-
   @Override
-  public UserResponseDto create(Jwt jwt, UserCreateRequestDto dto) {
+  public UserResponseDto create(UserCreateRequestDto dto) {
     log.info("User sign up attempt : {}", dto);
-
-    String providerUserId = jwt.getSubject();
-
     log.info("Checking if the user already exists");
-    var existing = userRepository.findUserByProviderUserId(providerUserId);
+    var existing = userRepository.findUserByProviderUserId(dto.providerUserId());
     if (existing.isPresent()) {
       throw new UserAlreadyExistsException(dto.email());
     }
