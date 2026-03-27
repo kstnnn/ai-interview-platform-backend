@@ -10,6 +10,7 @@ import io.github.kstnnn.user.service.enums.UserRole;
 import io.github.kstnnn.user.service.enums.UserStatus;
 import io.github.kstnnn.user.service.enums.UserType;
 import io.github.kstnnn.user.service.exception.UserAlreadyExistsException;
+import io.github.kstnnn.user.service.exception.UserNotFoundException;
 import io.github.kstnnn.user.service.repository.UserRepository;
 import java.time.Instant;
 import java.util.Optional;
@@ -89,6 +90,59 @@ public class UserServiceImplTest {
     given(userRepository.findUserByProviderUserId(providerUserId))
         .willReturn(Optional.of(existingUser));
 
+    // When + Then
     assertThrows(UserAlreadyExistsException.class, () -> userServiceImpl.create(dto));
+
+    then(userRepository).should(never()).save(any());
+  }
+
+  void shouldReturnUserDtoWhenUserExists() {
+    // Given
+    var id = UUID.randomUUID();
+
+    var existingUser = new User();
+
+    given(userRepository.findById(id)).willReturn(Optional.of(existingUser));
+
+    // When
+    var result = userServiceImpl.getById(id);
+
+    // Then
+    assertEquals(id, result.id());
+  }
+
+  void shouldThrowUserNotFoundExceptionWhenUserDoesNotExist() {
+    // Given
+    var id = UUID.randomUUID();
+
+    given(userRepository.findById(id)).willThrow(new UserNotFoundException(id));
+
+    // When + Then
+    assertThrows(UserNotFoundException.class, () -> userServiceImpl.getById(id));
+  }
+
+  void shouldDeleteUserWhenUserExists() {
+    // Given
+    var id = UUID.randomUUID();
+
+    given(userRepository.existsById(id)).willReturn(true);
+
+    // When
+    userServiceImpl.deleteById(id);
+
+    // Then
+    then(userRepository).should().deleteById(id);
+  }
+
+  void shouldDeleteUserWhenUserDoesNotExist() {
+    // Given
+    var id = UUID.randomUUID();
+
+    given(userRepository.existsById(id)).willReturn(false);
+
+    // When + Then
+    assertThrows(UserNotFoundException.class, () -> userServiceImpl.deleteById(id));
+
+    then(userRepository).should(never()).deleteById(any());
   }
 }

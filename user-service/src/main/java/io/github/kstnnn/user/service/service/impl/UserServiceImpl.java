@@ -35,6 +35,11 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public void deleteById(UUID id) {
+    log.info("Check if user exists");
+    var isExists = userRepository.existsById(id);
+    if (!isExists) {
+      throw new UserNotFoundException(id);
+    }
     log.info("Delete user with id {} attempt", id);
     userRepository.deleteById(id);
   }
