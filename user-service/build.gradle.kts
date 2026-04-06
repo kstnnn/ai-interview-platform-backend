@@ -17,7 +17,7 @@ java {
 
 spotless {
     java {
-        googleJavaFormat("1.19.2")
+        googleJavaFormat("1.34.0")
         removeUnusedImports()
         target("**/*.java")
         targetExclude("**/build/**/*.java")
@@ -36,15 +36,18 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-liquibase")
     implementation("org.projectlombok:lombok")
     implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
-    testImplementation("org.springframework.boot:spring-boot-starter-opentelemetry-test")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     annotationProcessor("org.projectlombok:lombok")
     runtimeOnly("org.postgresql:postgresql")
+    testImplementation("org.springframework.boot:spring-boot-starter-opentelemetry-test")
     testImplementation("org.springframework.boot:spring-boot-starter-liquibase-test")
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
     testImplementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server-test")
     testImplementation("org.springframework.boot:spring-boot-starter-security-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation("org.testcontainers:testcontainers-postgresql")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
