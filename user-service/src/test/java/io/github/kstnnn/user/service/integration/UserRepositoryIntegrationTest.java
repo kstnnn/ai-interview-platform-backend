@@ -127,6 +127,29 @@ public class UserRepositoryIntegrationTest {
   }
 
   @Test
+  void shouldReturnEmptyWhenUserIsDeleted() {
+    // Given
+    var user =
+        User.builder()
+            .providerUserId("1234567890")
+            .email("johndoe@example.com")
+            .userType(UserType.PERSONAL)
+            .userStatus(UserStatus.DELETED)
+            .firstName("John")
+            .lastName("Doe")
+            .roles(Set.of(UserRole.CANDIDATE))
+            .build();
+
+    userRepository.saveAndFlush(user);
+
+    // When
+    var response = userRepository.findResponseDtoById(user.getId());
+
+    // Then
+    assertTrue(response.isEmpty());
+  }
+
+  @Test
   void shouldFindUserByProviderUserIdWhenUserExists() {
     // Given
     var providerUserId = "1234567890";
