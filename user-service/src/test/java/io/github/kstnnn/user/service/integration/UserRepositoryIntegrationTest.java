@@ -31,7 +31,7 @@ public class UserRepositoryIntegrationTest {
   @Autowired private UserRepository userRepository;
 
   @Test
-  void shouldSaveUserAndReturnEntityWhenValidDataProvided() {
+  void shouldSaveUserAndGenerateIdWhenValidDataProvided() {
     // Given
     var user =
         User.builder()
@@ -65,7 +65,7 @@ public class UserRepositoryIntegrationTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenSaveUserWithDuplicateEmail() {
+  void shouldThrowDataIntegrityViolationExceptionWhenEmailIsDuplicate() {
     // Given
     var email = "johndoe@example.com";
     var user =
@@ -127,7 +127,7 @@ public class UserRepositoryIntegrationTest {
   }
 
   @Test
-  void shouldReturnUserByProvidingUserIdWhenUserExists() {
+  void shouldFindUserByProviderUserIdWhenUserExists() {
     // Given
     var providerUserId = "1234567890";
     var user =
