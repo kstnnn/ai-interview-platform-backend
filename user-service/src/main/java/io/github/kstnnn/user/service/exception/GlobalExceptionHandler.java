@@ -28,6 +28,15 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
   }
 
+  @ExceptionHandler(UserAlreadyDeletedException.class)
+  public ResponseEntity<Map<String, String>> handleUserAlreadyDeletedException(
+      UserAlreadyDeletedException ex) {
+
+    log.error(ex.getMessage());
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
+  }
+
   private String maskEmail(String email) {
     int atIndex = email.indexOf('@');
     String regex = "(.{2})(.*)(@.*)";

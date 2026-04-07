@@ -2,6 +2,8 @@ package io.github.kstnnn.user.service.service.impl;
 
 import io.github.kstnnn.user.service.dto.UserCreateRequestDto;
 import io.github.kstnnn.user.service.dto.UserResponseDto;
+import io.github.kstnnn.user.service.enums.UserStatus;
+import io.github.kstnnn.user.service.exception.UserAlreadyDeletedException;
 import io.github.kstnnn.user.service.exception.UserAlreadyExistsException;
 import io.github.kstnnn.user.service.exception.UserNotFoundException;
 import io.github.kstnnn.user.service.repository.UserRepository;
@@ -10,6 +12,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -22,8 +25,8 @@ public class UserServiceImpl implements UserService {
   public UserResponseDto create(UserCreateRequestDto dto) {
     log.info("User sign up attempt : {}", dto);
     log.info("Checking if the user already exists");
-    var existing = userRepository.existsByEmail(dto.email());
-    if (existing) {
+    var isExists = userRepository.existsByEmail(dto.email());
+    if (isExists) {
       throw new UserAlreadyExistsException(dto.email());
     }
 
@@ -34,14 +37,26 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  @Transactional
   public void deleteById(UUID id) {
     log.info("Check if user exists");
-    var isExists = userRepository.existsById(id);
-    if (!isExists) {
-      throw new UserNotFoundException(id);
+
+    var existing = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+
+    log.info("Delete user with id {} attempt.", id);
+
+    if (existing.getUserStatus() == UserStatus.DELETED) {
+      log.warn("User with id {} is already deleted", id);
+      throw new UserAlreadyDeletedException(id);
     }
-    log.info("Delete user with id {} attempt", id);
-    userRepository.deleteById(id);
+
+    existing.setUserStatus(UserStatus.DELETED);
+    existing.setEmail("deleted_" + existing.getEmail());
+    existing.setProviderUserId("deleted_" + existing.getProviderUserId());
+
+    userRepository.save(existing);
+
+    log.info("User has been deleted.");
   }
 
   @Override

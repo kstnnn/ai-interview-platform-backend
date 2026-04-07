@@ -1,0 +1,9 @@
+package io.github.kstnnn.user.service.exception;
+
+import java.util.UUID;
+
+public class UserAlreadyDeletedException extends RuntimeException {
+  public UserAlreadyDeletedException(UUID id) {
+    super("User with id {} is already deleted.");
+  }
+}
