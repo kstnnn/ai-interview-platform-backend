@@ -5,10 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.*;
 
 import io.github.kstnnn.user.service.dto.UserCreateRequestDto;
+import io.github.kstnnn.user.service.dto.UserResponseDto;
 import io.github.kstnnn.user.service.entity.User;
 import io.github.kstnnn.user.service.enums.UserRole;
 import io.github.kstnnn.user.service.enums.UserStatus;
 import io.github.kstnnn.user.service.enums.UserType;
+import io.github.kstnnn.user.service.exception.UserAlreadyDeletedException;
 import io.github.kstnnn.user.service.exception.UserAlreadyExistsException;
 import io.github.kstnnn.user.service.exception.UserNotFoundException;
 import io.github.kstnnn.user.service.repository.UserRepository;
@@ -30,7 +32,7 @@ public class UserServiceImplTest {
   @InjectMocks private UserServiceImpl userServiceImpl;
 
   @Test
-  void shouldCreateUserAndReturnDtoWhenUserDoesNotExist() {
+  void shouldReturnUserResponseDtoWhenCreateUser() {
     // Given
     var providerUserId = "1234567890";
     var id = UUID.randomUUID();
@@ -39,12 +41,10 @@ public class UserServiceImplTest {
     var lastName = "Doe";
     var roles = Set.of(UserRole.CANDIDATE);
     var createdAt = Instant.now();
-
-    UserCreateRequestDto userCreateRequestDto =
+    var userCreateRequestDto =
         new UserCreateRequestDto(
             providerUserId, email, UserType.PERSONAL, firstName, lastName, roles);
-
-    User savedUser =
+    var savedUser =
         User.builder()
             .id(id)
             .email(email)
@@ -76,33 +76,58 @@ public class UserServiceImplTest {
     assertEquals(createdAt, result.createdAt());
   }
 
-  void shouldThrowUserAlreadyExistsExceptionWhenUserAlreadyExists() {
+  @Test
+  void shouldThrowUserAlreadyExistsExceptionWhenCreateUserWithDuplicateEmail() {
     // Given
     var providerUserId = "1234567890";
     var email = "johndoe@example.com";
-
     var dto =
         new UserCreateRequestDto(
             providerUserId, email, UserType.PERSONAL, "John", "Doe", Set.of(UserRole.CANDIDATE));
+    var isExists = true;
 
-    var existingUser = User.builder().email(email).providerUserId(providerUserId).build();
-
-    given(userRepository.findUserByProviderUserId(providerUserId))
-        .willReturn(Optional.of(existingUser));
+    given(userRepository.existsByEmail(email)).willReturn(isExists);
 
     // When + Then
     assertThrows(UserAlreadyExistsException.class, () -> userServiceImpl.create(dto));
 
-    then(userRepository).should(never()).save(any());
+    then(userRepository).should(never()).save(any(User.class));
   }
 
-  void shouldReturnUserDtoWhenUserExists() {
+  @Test
+  void shouldThrowUserAlreadyExistsExceptionWhenCreateUserWithDuplicateProviderUserId() {
+    // Given
+    var providerUserId = "1234567890";
+    var email = "johndoe@example.com";
+    var dto =
+        new UserCreateRequestDto(
+            providerUserId, email, UserType.PERSONAL, "John", "Doe", Set.of(UserRole.CANDIDATE));
+    var isExists = true;
+
+    given(userRepository.existsByProviderUserId(providerUserId)).willReturn(isExists);
+
+    // When + Then
+    assertThrows(UserAlreadyExistsException.class, () -> userServiceImpl.create(dto));
+
+    then(userRepository).should(never()).save(any(User.class));
+  }
+
+  @Test
+  void shouldReturnUserResponseDtoWhenGetUserById() {
     // Given
     var id = UUID.randomUUID();
+    var response =
+        new UserResponseDto(
+            id,
+            "john@doe.com",
+            "John",
+            "Doe",
+            false,
+            UserType.PERSONAL,
+            UserStatus.ACTIVE,
+            Instant.now());
 
-    var existingUser = new User();
-
-    given(userRepository.findById(id)).willReturn(Optional.of(existingUser));
+    given(userRepository.findResponseDtoById(id)).willReturn(Optional.of(response));
 
     // When
     var result = userServiceImpl.getById(id);
@@ -111,38 +136,84 @@ public class UserServiceImplTest {
     assertEquals(id, result.id());
   }
 
-  void shouldThrowUserNotFoundExceptionWhenUserDoesNotExist() {
+  @Test
+  void shouldThrowUserNotFoundExceptionWhenGetUserById() {
     // Given
     var id = UUID.randomUUID();
 
-    given(userRepository.findById(id)).willThrow(new UserNotFoundException(id));
+    given(userRepository.findResponseDtoById(id)).willThrow(new UserNotFoundException(id));
 
     // When + Then
     assertThrows(UserNotFoundException.class, () -> userServiceImpl.getById(id));
   }
 
-  void shouldDeleteUserWhenUserExists() {
+  @Test
+  void shouldSetStatusToDeleteWhenDeleteUserById() {
     // Given
     var id = UUID.randomUUID();
+    var email = "john@doe.com";
+    var providerUserId = "1234567890";
+    var user =
+        User.builder()
+            .id(id)
+            .providerUserId(providerUserId)
+            .email(email)
+            .userType(UserType.PERSONAL)
+            .firstName("John")
+            .lastName("Doe")
+            .userStatus(UserStatus.ACTIVE)
+            .roles(Set.of(UserRole.CANDIDATE))
+            .emailVerified(false)
+            .createdAt(Instant.now())
+            .build();
 
-    given(userRepository.existsById(id)).willReturn(true);
+    given(userRepository.findById(id)).willReturn(Optional.of(user));
 
     // When
     userServiceImpl.deleteById(id);
 
     // Then
-    then(userRepository).should().deleteById(id);
+    assertEquals(UserStatus.DELETED, user.getUserStatus());
+    assertEquals("deleted_" + email, user.getEmail());
+    assertEquals("deleted_" + providerUserId, user.getProviderUserId());
+
+    then(userRepository).should().save(any(User.class));
   }
 
-  void shouldDeleteUserWhenUserDoesNotExist() {
+  @Test
+  void shouldThrowUserNotFoundExceptionWhenDeleteUserById() {
     // Given
     var id = UUID.randomUUID();
 
-    given(userRepository.existsById(id)).willReturn(false);
+    given(userRepository.findById(id)).willThrow(new UserNotFoundException(id));
 
-    // When + Then
+    // When & Then
     assertThrows(UserNotFoundException.class, () -> userServiceImpl.deleteById(id));
+    then(userRepository).should(never()).save(any(User.class));
+  }
 
-    then(userRepository).should(never()).deleteById(any());
+  @Test
+  void shouldThrowUserAlreadyDeletedExceptionWhenDeleteUserById() {
+    // Given
+    var id = UUID.randomUUID();
+    var deletedUser =
+        User.builder()
+            .id(id)
+            .providerUserId("delete_1234567890")
+            .email("delete_john@doe.com")
+            .userType(UserType.PERSONAL)
+            .firstName("John")
+            .lastName("Doe")
+            .userStatus(UserStatus.DELETED)
+            .roles(Set.of(UserRole.CANDIDATE))
+            .emailVerified(false)
+            .createdAt(Instant.now())
+            .build();
+
+    given(userRepository.findById(id)).willReturn(Optional.of(deletedUser));
+
+    // When & Then
+    assertThrows(UserAlreadyDeletedException.class, () -> userServiceImpl.deleteById(id));
+    then(userRepository).should(never()).save(any(User.class));
   }
 }

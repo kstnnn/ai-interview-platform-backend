@@ -41,10 +41,10 @@ public class UserControllerTest {
   @MockitoBean private UserRepository userRepository;
 
   @Test
-  void shouldReturnUser() throws Exception {
+  void shouldReturnUserResponseDto() throws Exception {
     // Arrange
     var id = UUID.randomUUID();
-    var email = "johndoe@example.com";
+    var email = "john@doe.com";
     var response =
         new UserResponseDto(
             id, email, "John", "Doe", false, UserType.PERSONAL, UserStatus.ACTIVE, Instant.now());
@@ -64,18 +64,18 @@ public class UserControllerTest {
   void shouldCreateUser() throws Exception {
     // Arrange
     var userId = UUID.randomUUID();
-    var requestDto =
+    var request =
         new UserCreateRequestDto(
-            "provider-123",
-            "test@example.com",
+            "1234567890",
+            "john@doe.com",
             UserType.PERSONAL,
             "John",
             "Doe",
             Set.of(UserRole.MANAGER));
-    var responseDto =
+    var response =
         new UserResponseDto(
             userId,
-            "test@example.com",
+            "john@doe.com",
             "John",
             "Doe",
             false,
@@ -83,17 +83,17 @@ public class UserControllerTest {
             UserStatus.ACTIVE,
             Instant.now());
 
-    when(userService.create(any(UserCreateRequestDto.class))).thenReturn(responseDto);
+    when(userService.create(any(UserCreateRequestDto.class))).thenReturn(response);
 
     // Act & Assert
     mockMvc
         .perform(
             post("/api/v1/users")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestDto)))
+                .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.id").value(userId.toString()))
-        .andExpect(jsonPath("$.email").value("test@example.com"));
+        .andExpect(jsonPath("$.email").value("john@doe.com"));
     verify(userService).create(any(UserCreateRequestDto.class));
   }
 
