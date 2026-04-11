@@ -62,11 +62,36 @@ public class UserServiceIntegrationTest {
   }
 
   @Test
-  void shouldThrowWhenUserAlreadyExists() {
+  void shouldThrowUserAlreadyExistsWhenCreateUserWithDuplicateEmail() {
     // Given
+    var email = "john@doe.com";
     var user =
         User.builder()
             .providerUserId("1234567890")
+            .email(email)
+            .userType(UserType.PERSONAL)
+            .userStatus(UserStatus.ACTIVE)
+            .firstName("John")
+            .lastName("Doe")
+            .roles(Set.of(UserRole.CANDIDATE))
+            .build();
+    userRepository.saveAndFlush(user);
+
+    var request =
+        new UserCreateRequestDto(
+            "1234567890", email, UserType.PERSONAL, "John", "Doe", Set.of(UserRole.CANDIDATE));
+
+    // When & Then
+    assertThrows(UserAlreadyExistsException.class, () -> userService.create(request));
+  }
+
+  @Test
+  void shouldThrowUserAlreadyExistsWhenCreateUserWithDuplicateProviderUserId() {
+    // Given
+    var providerUserId = "john@doe.com";
+    var user =
+        User.builder()
+            .providerUserId(providerUserId)
             .email("john@doe.com")
             .userType(UserType.PERSONAL)
             .userStatus(UserStatus.ACTIVE)
@@ -78,7 +103,7 @@ public class UserServiceIntegrationTest {
 
     var request =
         new UserCreateRequestDto(
-            "1234567890",
+            providerUserId,
             "john@doe.com",
             UserType.PERSONAL,
             "John",

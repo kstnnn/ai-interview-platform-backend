@@ -36,7 +36,7 @@ public class UserRepositoryIntegrationTest {
     var user =
         User.builder()
             .providerUserId("1234567890")
-            .email("johndoe@example.com")
+            .email("john@doe.com")
             .userType(UserType.PERSONAL)
             .userStatus(UserStatus.ACTIVE)
             .firstName("John")
@@ -57,7 +57,7 @@ public class UserRepositoryIntegrationTest {
     assertFalse(saved.isEmailVerified());
     assertEquals(UserStatus.ACTIVE, saved.getUserStatus());
 
-    assertEquals("johndoe@example.com", saved.getEmail());
+    assertEquals("john@doe.com", saved.getEmail());
 
     var found = userRepository.findById(saved.getId()).orElseThrow();
     assertEquals("John", found.getFirstName());
@@ -67,7 +67,7 @@ public class UserRepositoryIntegrationTest {
   @Test
   void shouldThrowDataIntegrityViolationExceptionWhenEmailIsDuplicate() {
     // Given
-    var email = "johndoe@example.com";
+    var email = "john@doe.com";
     var user =
         User.builder()
             .providerUserId("1234567890")
@@ -103,7 +103,7 @@ public class UserRepositoryIntegrationTest {
     var user =
         User.builder()
             .providerUserId("1234567890")
-            .email("johndoe@example.com")
+            .email("john@doe.com")
             .userType(UserType.PERSONAL)
             .userStatus(UserStatus.ACTIVE)
             .firstName("John")
@@ -132,7 +132,7 @@ public class UserRepositoryIntegrationTest {
     var user =
         User.builder()
             .providerUserId("1234567890")
-            .email("johndoe@example.com")
+            .email("john@doe.com")
             .userType(UserType.PERSONAL)
             .userStatus(UserStatus.DELETED)
             .firstName("John")
@@ -156,7 +156,7 @@ public class UserRepositoryIntegrationTest {
     var user =
         User.builder()
             .providerUserId(providerUserId)
-            .email("johndoe@example.com")
+            .email("john@doe.com")
             .userType(UserType.PERSONAL)
             .userStatus(UserStatus.ACTIVE)
             .firstName("John")
@@ -172,5 +172,83 @@ public class UserRepositoryIntegrationTest {
     assertEquals(providerUserId, found.getProviderUserId());
     assertEquals(user.getEmail(), found.getEmail());
     assertEquals(user.getId(), found.getId());
+  }
+
+  @Test
+  void shouldReturnTrueWhenUserExistsByEmail() {
+    // Given
+    var email = "john@doe.com";
+    var user =
+        User.builder()
+            .providerUserId("1234567890")
+            .email(email)
+            .userType(UserType.PERSONAL)
+            .userStatus(UserStatus.ACTIVE)
+            .firstName("John")
+            .lastName("Doe")
+            .roles(Set.of(UserRole.CANDIDATE))
+            .build();
+    userRepository.saveAndFlush(user);
+
+    // When & Then
+    assertTrue(userRepository.existsByEmail(email));
+  }
+
+  @Test
+  void shouldReturnFalseWhenUserNotExistsByEmail() {
+    // Given
+    var user =
+        User.builder()
+            .providerUserId("1234567890")
+            .email("john@doe.com")
+            .userType(UserType.PERSONAL)
+            .userStatus(UserStatus.ACTIVE)
+            .firstName("John")
+            .lastName("Doe")
+            .roles(Set.of(UserRole.CANDIDATE))
+            .build();
+    userRepository.saveAndFlush(user);
+
+    // When & Then
+    assertFalse(userRepository.existsByEmail("jane@doe.com"));
+  }
+
+  @Test
+  void shouldReturnTrueWhenUserExistsByProviderUserId() {
+    // Given
+    var providerUserId = "1234567890";
+    var user =
+        User.builder()
+            .providerUserId(providerUserId)
+            .email("john@doe.com")
+            .userType(UserType.PERSONAL)
+            .userStatus(UserStatus.ACTIVE)
+            .firstName("John")
+            .lastName("Doe")
+            .roles(Set.of(UserRole.CANDIDATE))
+            .build();
+    userRepository.saveAndFlush(user);
+
+    // When & Then
+    assertTrue(userRepository.existsByProviderUserId(providerUserId));
+  }
+
+  @Test
+  void shouldReturnFalseWhenUserNotExistsByProviderUserId() {
+    // Given
+    var user =
+        User.builder()
+            .providerUserId("1234567890")
+            .email("john@doe.com")
+            .userType(UserType.PERSONAL)
+            .userStatus(UserStatus.ACTIVE)
+            .firstName("John")
+            .lastName("Doe")
+            .roles(Set.of(UserRole.CANDIDATE))
+            .build();
+    userRepository.saveAndFlush(user);
+
+    // When & Then
+    assertFalse(userRepository.existsByProviderUserId("0987654321"));
   }
 }

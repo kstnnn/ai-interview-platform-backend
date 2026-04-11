@@ -25,9 +25,13 @@ public class UserServiceImpl implements UserService {
   public UserResponseDto create(UserCreateRequestDto dto) {
     log.info("User sign up attempt : {}", dto);
     log.info("Checking if the user already exists");
-    var isExists = userRepository.existsByEmail(dto.email());
-    if (isExists) {
-      throw new UserAlreadyExistsException(dto.email());
+
+    if (userRepository.existsByEmail(dto.email())) {
+      throw new UserAlreadyExistsException("email", dto.email());
+    }
+
+    if (userRepository.existsByProviderUserId(dto.providerUserId())) {
+      throw new UserAlreadyExistsException("providerUserId", dto.providerUserId());
     }
 
     log.info("Saving new user");

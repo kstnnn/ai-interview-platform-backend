@@ -77,7 +77,7 @@ public class UserServiceImplTest {
   }
 
   @Test
-  void shouldThrowUserAlreadyExistsExceptionWhenCreateUser() {
+  void shouldThrowUserAlreadyExistsExceptionWhenCreateUserWithDuplicateEmail() {
     // Given
     var providerUserId = "1234567890";
     var email = "johndoe@example.com";
@@ -91,7 +91,25 @@ public class UserServiceImplTest {
     // When + Then
     assertThrows(UserAlreadyExistsException.class, () -> userServiceImpl.create(dto));
 
-    then(userRepository).should(never()).save(any());
+    then(userRepository).should(never()).save(any(User.class));
+  }
+
+  @Test
+  void shouldThrowUserAlreadyExistsExceptionWhenCreateUserWithDuplicateProviderUserId() {
+    // Given
+    var providerUserId = "1234567890";
+    var email = "johndoe@example.com";
+    var dto =
+        new UserCreateRequestDto(
+            providerUserId, email, UserType.PERSONAL, "John", "Doe", Set.of(UserRole.CANDIDATE));
+    var isExists = true;
+
+    given(userRepository.existsByProviderUserId(providerUserId)).willReturn(isExists);
+
+    // When + Then
+    assertThrows(UserAlreadyExistsException.class, () -> userServiceImpl.create(dto));
+
+    then(userRepository).should(never()).save(any(User.class));
   }
 
   @Test
