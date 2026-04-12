@@ -3,6 +3,7 @@ package io.github.kstnnn.user.service.controller;
 import io.github.kstnnn.user.service.dto.UserCreateRequestDto;
 import io.github.kstnnn.user.service.dto.UserResponseDto;
 import io.github.kstnnn.user.service.service.UserService;
+import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,7 +29,7 @@ public class UserController {
   }
 
   @PostMapping
-  ResponseEntity<UserResponseDto> createUser(@RequestBody UserCreateRequestDto dto) {
+  ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserCreateRequestDto dto) {
     return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(dto));
   }
 

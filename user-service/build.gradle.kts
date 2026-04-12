@@ -1,5 +1,5 @@
 plugins {
-    id("org.springframework.boot") version "4.0.2"
+    id("org.springframework.boot") version "4.0.5"
     id("io.spring.dependency-management") version "1.1.7"
     id("java")
     id("com.diffplug.spotless") version "8.3.0"
@@ -37,6 +37,7 @@ dependencies {
     implementation("org.projectlombok:lombok")
     implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
     annotationProcessor("org.projectlombok:lombok")
     runtimeOnly("org.postgresql:postgresql")
     testImplementation("org.springframework.boot:spring-boot-starter-opentelemetry-test")
