@@ -2,6 +2,7 @@ package io.github.kstnnn.user.service.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -16,6 +17,9 @@ import io.github.kstnnn.user.service.dto.UserResponseDto;
 import io.github.kstnnn.user.service.enums.UserRole;
 import io.github.kstnnn.user.service.enums.UserStatus;
 import io.github.kstnnn.user.service.enums.UserType;
+import io.github.kstnnn.user.service.exception.UserAlreadyDeletedException;
+import io.github.kstnnn.user.service.exception.UserAlreadyExistsException;
+import io.github.kstnnn.user.service.exception.UserNotFoundException;
 import io.github.kstnnn.user.service.repository.UserRepository;
 import io.github.kstnnn.user.service.service.UserService;
 import java.time.Instant;
@@ -106,5 +110,82 @@ public class UserControllerTest {
     // Act & Assert
     mockMvc.perform(delete("/api/v1/users/{id}", id)).andExpect(status().isNoContent());
     verify(userService).deleteById(id);
+  }
+
+  @Test
+  void shouldReturn404WhenUserNotFound() throws Exception {
+    // Arrange
+    var id = UUID.randomUUID();
+    when(userService.getById(id)).thenThrow(new UserNotFoundException(id));
+
+    // Act & Assert
+    mockMvc
+        .perform(get("/api/v1/users/{id}", id))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error").value(String.format("User not found with id %s", id)));
+  }
+
+  @Test
+  void shouldReturn400WhenUserAlreadyExists() throws Exception {
+    // Arrange
+    var request =
+        new UserCreateRequestDto(
+            "1234567890",
+            "john@doe.com",
+            UserType.PERSONAL,
+            "John",
+            "Doe",
+            Set.of(UserRole.CANDIDATE));
+
+    when(userService.create(any(UserCreateRequestDto.class)))
+        .thenThrow(new UserAlreadyExistsException("email", "john@doe.com"));
+
+    // Act & Assert
+    mockMvc
+        .perform(
+            post("/api/v1/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("User with email '******oe.com' already exists"));
+  }
+
+  @Test
+  void shouldReturn400WhenUserAlreadyDeleted() throws Exception {
+    // Arrange
+    var id = UUID.randomUUID();
+    doThrow(new UserAlreadyDeletedException(id)).when(userService).deleteById(id);
+
+    // Act & Assert
+    mockMvc
+        .perform(delete("/api/v1/users/{id}", id))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.error").value(String.format("User with id %s is already deleted.", id)));
+  }
+
+  @Test
+  void shouldReturn400WhenValidationFails() throws Exception {
+    // Arrange
+    var request =
+        """
+        {
+          "providerUserId": "",
+          "email": "invalid",
+          "firstName": "",
+          "userType": null,
+          "roles": []
+        }
+        """;
+
+    // Act & Assert
+    mockMvc
+        .perform(post("/api/v1/users").contentType(MediaType.APPLICATION_JSON).content(request))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("Validation failed"))
+        .andExpect(jsonPath("$.details.providerUserId").value("Provider id is required."))
+        .andExpect(jsonPath("$.details.email").value("Email must be valid."))
+        .andExpect(jsonPath("$.details.firstName").value("First name is required."))
+        .andExpect(jsonPath("$.details.roles").value("At least one role is required."));
   }
 }
