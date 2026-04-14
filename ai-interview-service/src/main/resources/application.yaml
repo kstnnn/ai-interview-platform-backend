@@ -10,6 +10,20 @@ spring:
       chat:
         options:
           model: ${GROQ_MODEL}
+    vectorstore:
+      chroma:
+        initialize-schema: true
+        host: ${CHROMA_HOST}
+        port: ${CHROMA_PORT}
+        collection-name: ${CHROMA_COLLECTION}
+    model:
+      embedding: transformers
+    embedding:
+      transformer:
+        onnx:
+          model-uri: ${MODEL_ONNX_PATH}
+        tokenizer:
+          uri: ${MODEL_TOKENIZER_PATH}
   application:
     name: ai-interview-service
   datasource:

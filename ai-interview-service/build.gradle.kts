@@ -23,9 +23,10 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
-	// implementation("org.springframework.ai:spring-ai-advisors-vector-store")
+	implementation("org.springframework.ai:spring-ai-advisors-vector-store")
 	// implementation("org.springframework.ai:spring-ai-starter-model-chat-memory-repository-redis")
-	// implementation("org.springframework.ai:spring-ai-starter-vector-store-chroma")
+	implementation("org.springframework.ai:spring-ai-starter-model-transformers")
+	implementation("org.springframework.ai:spring-ai-starter-vector-store-chroma")
 	implementation("org.springframework.ai:spring-ai-starter-model-openai")
 	compileOnly("org.projectlombok:lombok")
 	runtimeOnly("org.postgresql:postgresql")
@@ -46,4 +47,8 @@ dependencyManagement {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+tasks.withType<JavaExec> {
+	jvmArgs("--enable-native-access=ALL-UNNAMED")
 }
