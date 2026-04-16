@@ -1,7 +1,30 @@
 services:
   grafana-lgtm:
-    image: "grafana/otel-lgtm:0.20.0"
+    image: grafana/otel-lgtm:0.20.0
     ports:
       - "3000:3000"
       - "4317:4317"
       - "4318:4318"
+  db:
+    image: postgres:17
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+  chromadb:
+    image: chromadb/chroma:1.5.8.dev23
+    restart: always
+    ports:
+      - "${CHROMA_PORT}:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+
+volumes:
+  db-data:
+  chroma-data:

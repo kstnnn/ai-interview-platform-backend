@@ -1,0 +1,98 @@
+[
+  {
+    "id": "spring-001",
+    "question": "What is Dependency Injection? How does Spring implement it, and what are the different ways to inject dependencies?",
+    "answer": "Dependency Injection (DI) is a design pattern where objects receive their dependencies from an external source rather than creating them. Spring implements DI via its IoC (Inversion of Control) container. Three injection types: constructor injection (recommended, enables immutability and testability), setter injection (allows optional/reconfigurable dependencies), and field injection via `@Autowired` (discouraged, hides dependencies and makes testing harder).",
+    "topic": "spring",
+    "subtopic": "core",
+    "difficulty": "easy"
+  },
+  {
+    "id": "spring-002",
+    "question": "What is the difference between `@Component`, `@Service`, `@Repository`, and `@Controller` annotations?",
+    "answer": "All four are stereotypes that mark a class as a Spring bean. `@Component` is the generic annotation. `@Service` adds semantic meaning for business logic layers. `@Repository` adds automatic exception translation — Spring converts persistence exceptions into its `DataAccessException` hierarchy. `@Controller` marks a web controller that handles HTTP requests and returns views. Spring treats them all as beans, but the specific annotations enable additional framework behavior.",
+    "topic": "spring",
+    "subtopic": "core",
+    "difficulty": "easy"
+  },
+  {
+    "id": "spring-003",
+    "question": "Explain Spring Bean scopes. What is the difference between `singleton` and `prototype`? What happens when you inject a prototype bean into a singleton?",
+    "answer": "Spring bean scopes: `singleton` (one instance per container, default), `prototype` (new instance per request), `request`, `session`, `application` (web scopes). When a prototype bean is injected into a singleton, Spring creates ONE instance at singleton creation time and reuses it — it does NOT create a new instance each time. To get a new instance each time, use `@Lookup`, `ObjectProvider`, or inject `ApplicationContext` and call `getBean()` manually.",
+    "topic": "spring",
+    "subtopic": "core",
+    "difficulty": "medium"
+  },
+  {
+    "id": "spring-004",
+    "question": "What is `@Transactional` in Spring? How does it work, and what happens when a method throws an exception inside a transaction?",
+    "answer": "`@Transactional` enables declarative transaction management. Spring creates a proxy around the bean that opens a transaction before the method, commits on success, or rolls back on RuntimeException/Error. By default, it only rolls back on unchecked exceptions. You can customize with `rollbackFor` / `noRollbackFor`. Important: it only works on public methods and through proxy calls — self-invocation within the same class bypasses the proxy and the transaction is ignored.",
+    "topic": "spring",
+    "subtopic": "data",
+    "difficulty": "medium"
+  },
+  {
+    "id": "spring-005",
+    "question": "What is Spring Boot Auto-Configuration? How does `@SpringBootApplication` enable it?",
+    "answer": "Auto-Configuration automatically configures the Spring context based on classpath dependencies. `@SpringBootApplication` combines `@Configuration`, `@EnableAutoConfiguration`, and `@ComponentScan`. `@EnableAutoConfiguration` reads `META-INF/spring.factories` (or `org.springframework.boot.autoconfigure.AutoConfiguration.imports` in Spring Boot 3+) and applies configurations conditionally using `@ConditionalOnClass`, `@ConditionalOnMissingBean`, etc. Example: if `H2` is on the classpath, Spring auto-configures an in-memory DataSource.",
+    "topic": "spring",
+    "subtopic": "boot",
+    "difficulty": "medium"
+  },
+  {
+    "id": "spring-006",
+    "question": "What is the difference between Spring Data JPA's `CrudRepository`, `PagingAndSortingRepository`, and `JpaRepository`?",
+    "answer": "`CrudRepository` provides basic CRUD operations (save, findById, findAll, delete, count). `PagingAndSortingRepository` extends CrudRepository and adds `findAll(Pageable)` and `findAll(Sort)`. `JpaRepository` extends `PagingAndSortingRepository` and adds JPA-specific operations like `flush()`, `saveAndFlush()`, `deleteInBatch()`, and returns Java `List` instead of `Iterable`. For most Spring Boot + JPA projects, `JpaRepository` is the standard choice.",
+    "topic": "spring",
+    "subtopic": "data",
+    "difficulty": "easy"
+  },
+  {
+    "id": "spring-007",
+    "question": "How does Spring MVC handle an HTTP request from start to finish? Walk through the flow.",
+    "answer": "1) HTTP request hits `DispatcherServlet` (front controller). 2) `DispatcherServlet` consults `HandlerMapping` to find the right controller. 3) `HandlerAdapter` invokes the controller method. 4) Controller processes the request and returns a view name or response body (`@ResponseBody`). 5) If a view, `ViewResolver` resolves it and renders the response. 6) If `@RestController`, the return value is serialized (JSON/XML) and written directly to the HTTP response. Interceptors can hook into before/after processing.",
+    "topic": "spring",
+    "subtopic": "mvc",
+    "difficulty": "medium"
+  },
+  {
+    "id": "spring-008",
+    "question": "What are Spring Profiles? How would you use them to manage different configurations for dev, test, and prod environments?",
+    "answer": "Spring Profiles allow environment-specific configuration. You define `application-dev.yml`, `application-prod.yml`, etc., and activate a profile via `spring.profiles.active=dev` (in env var, command line, or `@Profile` annotation). Beans can be conditionally registered with `@Profile(\"dev\")`. For example: dev profile uses H2 in-memory DB, prod uses PostgreSQL. You can activate multiple profiles and use `!profile` to exclude.",
+    "topic": "spring",
+    "subtopic": "boot",
+    "difficulty": "easy"
+  },
+  {
+    "id": "spring-009",
+    "question": "What is Spring Security's authentication vs authorization? Explain how JWT-based authentication would work in Spring.",
+    "answer": "Authentication verifies WHO the user is (login, credentials). Authorization determines WHAT they can access (roles, permissions). For JWT: 1) User logs in, server validates credentials and generates a signed JWT token. 2) Client stores the token and sends it in the `Authorization: Bearer <token>` header. 3) Spring Security's `OncePerRequestFilter` intercepts requests, validates the JWT signature, extracts the user identity, and sets the `SecurityContext`. 4) `@PreAuthorize(\"hasRole('ADMIN')\")` controls access.",
+    "topic": "spring",
+    "subtopic": "security",
+    "difficulty": "hard"
+  },
+  {
+    "id": "spring-010",
+    "question": "What is the difference between `@RequestParam`, `@PathVariable`, and `@RequestBody`? Give an example of each.",
+    "answer": "`@RequestParam` extracts query parameters: `GET /users?name=John` → `@RequestParam String name`. `@PathVariable` extracts URI path segments: `GET /users/42` → `@PathVariable Long id`. `@RequestBody` deserializes the HTTP request body (JSON) into an object: `POST /users` with JSON body → `@RequestBody UserDto user`. `@RequestParam` is for optional query params, `@PathVariable` for resource identification, `@RequestBody` for complex data structures.",
+    "topic": "spring",
+    "subtopic": "mvc",
+    "difficulty": "easy"
+  },
+  {
+    "id": "spring-011",
+    "question": "What are Spring AOP (Aspect-Oriented Programming) and aspects? Give a practical example of when you'd use AOP.",
+    "answer": "AOP separates cross-cutting concerns (logging, security, transactions) from business logic. Key terms: Aspect (the cross-cutting concern class), Join Point (method execution point), Advice (action: before, after, around), Pointcut (expression matching join points). Practical example: `@Aspect` with `@Around` advice to log execution time of all service methods, or `@Transactional` is itself an AOP aspect that wraps methods in transaction management.",
+    "topic": "spring",
+    "subtopic": "core",
+    "difficulty": "hard"
+  },
+  {
+    "id": "spring-012",
+    "question": "How would you handle exceptions globally in a Spring Boot REST API?",
+    "answer": "Use `@RestControllerAdvice` (or `@ControllerAdvice` + `@ResponseBody`) combined with `@ExceptionHandler` methods. Example: `@RestControllerAdvice class GlobalExceptionHandler { @ExceptionHandler(ResourceNotFoundException.class) public ResponseEntity<ErrorResponse> handleNotFound(...) { return ResponseEntity.status(404).body(new ErrorResponse(\"Not found\")); } }`. You can handle specific exceptions, generic `Exception`, and return structured error responses with status codes, messages, and timestamps.",
+    "topic": "spring",
+    "subtopic": "mvc",
+    "difficulty": "medium"
+  }
+]

@@ -32,7 +32,7 @@ spring:
     show-sql: true
     open-in-view: false
   liquibase:
-    enabled: on
+    enabled: true
     change-log: classpath:/db.changelog/db.changelog-master.yaml
   threads:
     virtual:

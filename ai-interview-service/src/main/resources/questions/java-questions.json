@@ -1,0 +1,98 @@
+[
+  {
+    "id": "java-001",
+    "question": "What is the difference between ArrayList and LinkedList? When would you use one over the other?",
+    "answer": "ArrayList uses a dynamic array under the hood, providing O(1) random access but O(n) insertion/deletion in the middle. LinkedList uses a doubly-linked list, offering O(1) insertion/deletion at ends but O(n) random access. Use ArrayList for read-heavy scenarios and LinkedList when you frequently insert/remove elements from the middle or need queue/deque behavior.",
+    "topic": "java",
+    "subtopic": "collections",
+    "difficulty": "easy"
+  },
+  {
+    "id": "java-002",
+    "question": "Explain the principles of encapsulation, inheritance, and polymorphism in Java. Give a practical example of polymorphism.",
+    "answer": "Encapsulation bundles data and behavior into a single unit and restricts direct access using access modifiers. Inheritance allows a class to extend another class, reusing code and establishing an is-a relationship. Polymorphism allows objects of different types to be treated through a common interface — e.g., a List reference can point to ArrayList or LinkedList, and calling .add() behaves differently based on the actual implementation at runtime.",
+    "topic": "java",
+    "subtopic": "oop",
+    "difficulty": "easy"
+  },
+  {
+    "id": "java-003",
+    "question": "What is the difference between `==` and `.equals()` in Java? Why is it important to override `hashCode()` when you override `equals()`?",
+    "answer": "`==` compares object references (memory addresses), while `.equals()` compares logical equality based on content. If you override `equals()` without overriding `hashCode()`, objects that are equal by `equals()` may have different hash codes, breaking HashMap/HashSet behavior — equal objects must have equal hash codes. The contract is: if a.equals(b), then a.hashCode() == b.hashCode().",
+    "topic": "java",
+    "subtopic": "basics",
+    "difficulty": "easy"
+  },
+  {
+    "id": "java-004",
+    "question": "What are Java Streams? Explain the difference between intermediate and terminal operations with examples.",
+    "answer": "Streams are a functional way to process collections of data. Intermediate operations (filter, map, sorted) return a new Stream and are lazy — they don't execute until a terminal operation is called. Terminal operations (collect, forEach, reduce, count) produce a result and trigger the pipeline execution. Example: `list.stream().filter(x -> x > 5).map(String::valueOf).collect(toList())` — filter and map are intermediate, collect is terminal.",
+    "topic": "java",
+    "subtopic": "streams",
+    "difficulty": "medium"
+  },
+  {
+    "id": "java-005",
+    "question": "What is the difference between `Checked` and `Unchecked` exceptions? Give examples of each and explain when you would use them.",
+    "answer": "Checked exceptions (IOException, SQLException) are verified at compile-time — the caller must handle or declare them. They represent recoverable conditions. Unchecked exceptions (RuntimeException, NullPointerException, IllegalArgumentException) are not checked at compile-time and usually represent programming errors. Use checked exceptions for recoverable scenarios (file not found, network timeout) and unchecked for bugs that shouldn't be recovered from (invalid arguments, null references).",
+    "topic": "java",
+    "subtopic": "exceptions",
+    "difficulty": "easy"
+  },
+  {
+    "id": "java-006",
+    "question": "Explain how `HashMap` works internally in Java. How does it handle collisions?",
+    "answer": "HashMap stores entries in an array of buckets (Node[]). It computes the hash of the key using `hashCode()`, then uses `(n-1) & hash` to find the bucket index. When two keys have the same hash (collision), they're stored as a linked list in the same bucket. Since Java 8, if a bucket grows beyond a threshold (TREEIFY_THRESHOLD=8), it converts to a balanced tree (red-black tree) for O(log n) lookups instead of O(n).",
+    "topic": "java",
+    "subtopic": "collections",
+    "difficulty": "medium"
+  },
+  {
+    "id": "java-007",
+    "question": "What is the `volatile` keyword in Java? How does it differ from `synchronized`?",
+    "answer": "`volatile` ensures visibility — reads/writes go directly to main memory, so all threads see the latest value. It does NOT provide atomicity for compound operations. `synchronized` provides both visibility and atomicity (mutual exclusion) — only one thread can execute a synchronized block at a time. Use `volatile` for simple flags (e.g., `volatile boolean running`), and `synchronized` for compound state changes.",
+    "topic": "java",
+    "subtopic": "concurrency",
+    "difficulty": "medium"
+  },
+  {
+    "id": "java-008",
+    "question": "What is the difference between `CompletableFuture` and regular `Future`? Show how you would chain two async operations using `CompletableFuture`.",
+    "answer": "`Future` is blocking — you must call `.get()` which blocks the thread. `CompletableFuture` is non-blocking and supports chaining, composition, and exception handling. Example: `CompletableFuture.supplyAsync(() -> fetchUser(id)).thenApply(user -> user.getName()).thenAccept(name -> System.out.println(name))`. You can also combine: `thenCombine`, `thenAcceptBoth`, and handle errors with `exceptionally` or `handle`.",
+    "topic": "java",
+    "subtopic": "concurrency",
+    "difficulty": "hard"
+  },
+  {
+    "id": "java-009",
+    "question": "What design patterns have you used in practice? Explain the Strategy pattern and give a Java example.",
+    "answer": "Strategy defines a family of algorithms and makes them interchangeable at runtime. In Java, `Comparator` is a Strategy pattern — you can pass different comparators to `Collections.sort()` to change sorting behavior without modifying the sorting algorithm itself. Other examples: Spring's `TaskExecutor` abstraction, or implementing payment processing with multiple strategies (CreditCard, PayPal, Crypto) behind a common `PaymentStrategy` interface.",
+    "topic": "java",
+    "subtopic": "design_patterns",
+    "difficulty": "medium"
+  },
+  {
+    "id": "java-010",
+    "question": "What is the difference between `String`, `StringBuilder`, and `StringBuffer`? Why is `String` immutable?",
+    "answer": "`String` is immutable — once created, its content cannot change. Operations like `concat()` create a new String. `StringBuilder` is mutable and not thread-safe, making it faster for string manipulation. `StringBuffer` is mutable and thread-safe (synchronized methods). String immutability enables string pooling, caching hashCode, thread safety, and security (e.g., class names, file paths can't be tampered with after creation).",
+    "topic": "java",
+    "subtopic": "basics",
+    "difficulty": "easy"
+  },
+  {
+    "id": "java-011",
+    "question": "What is a Java `Record` (introduced in Java 14)? How does it differ from a regular class, and when would you use it?",
+    "answer": "A Record is a concise way to create immutable data carriers. `record Point(int x, int y) {}` automatically generates: private final fields, public constructors, `equals()`, `hashCode()`, `toString()`, and accessor methods (`x()`, `y()`). Records cannot extend other classes and cannot have additional instance fields. Use them for DTOs, API responses, value objects, and any class whose primary purpose is to carry data.",
+    "topic": "java",
+    "subtopic": "modern_java",
+    "difficulty": "medium"
+  },
+  {
+    "id": "java-012",
+    "question": "Explain the `try-with-resources` statement. What interface must a class implement to use it? Give an example.",
+    "answer": "`try-with-resources` automatically closes resources declared in the try header. The class must implement `AutoCloseable` (or `Closeable`). Example: `try (BufferedReader br = new BufferedReader(new FileReader(\"file.txt\"))) { return br.readLine(); }` — `br` is closed automatically, even if an exception is thrown. Multiple resources can be declared, and they close in reverse order. This prevents resource leaks and eliminates boilerplate finally blocks.",
+    "topic": "java",
+    "subtopic": "modern_java",
+    "difficulty": "easy"
+  }
+]
