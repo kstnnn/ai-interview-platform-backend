@@ -21,7 +21,7 @@ services:
     image: chromadb/chroma:1.5.8.dev23
     restart: always
     ports:
-      - "${CHROMA_HOST}:8000"
+      - "${CHROMA_PORT}:8000"
     volumes:
       - chroma-data:/chroma/chroma
 

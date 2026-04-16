@@ -288,6 +288,6 @@ public class UserControllerIntegrationTest {
     var id = UUID.randomUUID();
 
     // When & Then
-    restTestClient.get().uri("/api/v1/users/" + id).exchange().expectStatus().isUnauthorized();
+    restTestClient.delete().uri("/api/v1/users/" + id).exchange().expectStatus().isUnauthorized();
   }
 }
