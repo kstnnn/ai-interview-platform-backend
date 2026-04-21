@@ -3,6 +3,7 @@ package io.github.kstnnn.ai.interview.service.service.impl;
 import io.github.kstnnn.ai.interview.service.service.AiSessionService;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -10,13 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 
 @Service
+@RequiredArgsConstructor
 public class AiSessionServiceImpl implements AiSessionService {
 
   private final ChatClient chatClient;
-
-  public AiSessionServiceImpl(ChatClient chatClient) {
-    this.chatClient = chatClient;
-  }
 
   @Value("classpath:/prompts/follow-up-question-prompt.st")
   private Resource followUpPrompt;

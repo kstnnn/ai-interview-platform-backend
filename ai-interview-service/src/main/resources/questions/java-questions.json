@@ -94,5 +94,69 @@
     "topic": "java",
     "subtopic": "modern_java",
     "difficulty": "easy"
+  },
+  {
+    "id": "java-013",
+    "question": "What happens during class loading in the JVM? Explain loading, linking, and initialization phases.",
+    "answer": "Class loading has three major phases: loading (bytecode is read and `Class` object is created), linking (verification, preparation, and symbolic reference resolution), and initialization (static fields and static blocks are executed). Class loaders follow parent delegation by default, preventing core class shadowing. Understanding this helps debug `ClassNotFoundException`, `NoClassDefFoundError`, and classpath conflicts.",
+    "topic": "java",
+    "subtopic": "jvm",
+    "difficulty": "medium"
+  },
+  {
+    "id": "java-014",
+    "question": "What is the Java Memory Model? Explain visibility, ordering, and atomicity with a real example.",
+    "answer": "The Java Memory Model defines how threads interact through memory. Visibility means one thread can observe another thread's writes, ordering is controlled by happens-before rules, and atomicity means indivisible operations. For example, `count++` is not atomic, so it can race across threads. `volatile` fixes visibility and ordering for single variable reads/writes, while `synchronized` or atomic classes handle compound operations safely.",
+    "topic": "java",
+    "subtopic": "concurrency",
+    "difficulty": "hard"
+  },
+  {
+    "id": "java-015",
+    "question": "How does `ThreadPoolExecutor` work? Which configuration mistakes most often cause production issues?",
+    "answer": "`ThreadPoolExecutor` manages a fixed or elastic pool with a work queue and rejection policy. Key parameters are core pool size, max pool size, keep-alive time, queue type, and rejected execution handler. Common issues are unbounded queues causing latency spikes and OOM, too-small pools for blocking tasks, and ignoring rejection policies. In production, tune pool sizes per workload type and expose metrics for queue depth, active threads, and rejections.",
+    "topic": "java",
+    "subtopic": "concurrency",
+    "difficulty": "hard"
+  },
+  {
+    "id": "java-016",
+    "question": "What are the differences between `HashMap`, `ConcurrentHashMap`, and `Collections.synchronizedMap`?",
+    "answer": "`HashMap` is not thread-safe. `Collections.synchronizedMap` wraps a map with a single monitor lock, which is simple but limits concurrency and requires external synchronization during iteration. `ConcurrentHashMap` is designed for high concurrency using finer-grained synchronization and non-blocking reads in many paths. It provides better throughput under contention and supports atomic methods like `computeIfAbsent`.",
+    "topic": "java",
+    "subtopic": "collections",
+    "difficulty": "medium"
+  },
+  {
+    "id": "java-017",
+    "question": "What are Java generics and type erasure? Why can't you create `new T()` or `List<String>[]`?",
+    "answer": "Generics provide compile-time type safety but are implemented through type erasure in Java. At runtime, most generic type information is removed, so `List<String>` and `List<Integer>` share the same raw runtime type. Because of erasure, `new T()` is impossible without a type token/class reference, and arrays of parameterized types like `List<String>[]` are disallowed because arrays are reified and covariant, which could break type safety.",
+    "topic": "java",
+    "subtopic": "generics",
+    "difficulty": "medium"
+  },
+  {
+    "id": "java-018",
+    "question": "How do you diagnose and resolve memory leaks in Java applications?",
+    "answer": "Start with symptoms (heap growth, frequent GC pauses, OOM). Capture heap dumps (`jmap`, JVM options) and analyze retained objects using tools like Eclipse MAT or VisualVM. Common causes are static caches without eviction, listener registries, thread-local misuse, and unclosed resources. Fix by limiting cache size/TTL, removing stale references, and enforcing lifecycle cleanup. Then verify with load testing and GC/log metrics.",
+    "topic": "java",
+    "subtopic": "jvm",
+    "difficulty": "hard"
+  },
+  {
+    "id": "java-019",
+    "question": "Explain `Optional` best practices. When is it useful and when should it be avoided?",
+    "answer": "`Optional` is useful as a return type to model absence explicitly and avoid null checks. Prefer methods like `map`, `flatMap`, `orElseGet`, and `orElseThrow` instead of `isPresent` + `get`. Avoid using `Optional` for entity fields, method parameters, and serialization DTO fields because it adds overhead and tooling friction. Treat it as an API return contract, not a universal replacement for null.",
+    "topic": "java",
+    "subtopic": "modern_java",
+    "difficulty": "medium"
+  },
+  {
+    "id": "java-020",
+    "question": "In a high-throughput service, when would you choose virtual threads over platform threads?",
+    "answer": "Virtual threads are ideal for request-per-thread designs dominated by blocking I/O, because they greatly reduce thread management overhead and improve scalability. They are not a silver bullet for CPU-bound workloads, where thread count still maps to core limits. When adopting them, verify library compatibility, avoid accidental pinning (e.g., long synchronized blocks/native calls), and measure latency, throughput, and resource usage under realistic load.",
+    "topic": "java",
+    "subtopic": "modern_java",
+    "difficulty": "hard"
   }
 ]

@@ -50,7 +50,7 @@
   {
     "id": "postgres-007",
     "question": "What is the difference between `DELETE` and `TRUNCATE` in PostgreSQL?",
-    "answer": "`DELETE` removes rows one by one, fires DELETE triggers, is transactional (can be rolled back), and supports WHERE clauses. `TRUNCATE` removes ALL rows instantly by deallocating data pages — much faster for large tables, but cannot use WHERE. It fires ON TRUNCATE triggers and is also transactional in PostgreSQL. `TRUNCATE` resets auto-increment sequences (IDENTITY/serial) unless `RESTART IDENTITY` is explicitly excluded.",
+    "answer": "`DELETE` removes rows one by one, fires DELETE triggers, is transactional (can be rolled back), and supports WHERE clauses. `TRUNCATE` removes all rows quickly by deallocating data pages, cannot use WHERE, and fires ON TRUNCATE triggers. In PostgreSQL, `TRUNCATE` is transactional and by default uses `CONTINUE IDENTITY`; sequences are reset only with `RESTART IDENTITY`.",
     "topic": "postgresql",
     "subtopic": "basics",
     "difficulty": "easy"
@@ -94,5 +94,69 @@
     "topic": "postgresql",
     "subtopic": "basics",
     "difficulty": "easy"
+  },
+  {
+    "id": "postgres-013",
+    "question": "What is the difference between `EXPLAIN` and `EXPLAIN ANALYZE`? Why can `EXPLAIN ANALYZE` be dangerous in production?",
+    "answer": "`EXPLAIN` shows the planned execution strategy without running the query. `EXPLAIN ANALYZE` executes the query and reports actual runtime statistics, including row counts and timing, which are essential for diagnosing bad estimates. It can be dangerous in production because it really runs the statement; for expensive updates/deletes it may cause heavy load or data changes unless wrapped safely.",
+    "topic": "postgresql",
+    "subtopic": "performance",
+    "difficulty": "medium"
+  },
+  {
+    "id": "postgres-014",
+    "question": "When would you use a partial index in PostgreSQL? Give an example.",
+    "answer": "Use a partial index when queries repeatedly target a subset of rows, reducing index size and write overhead. Example: for active users only, `CREATE INDEX idx_users_active_email ON users(email) WHERE deleted_at IS NULL;`. This speeds matching queries while avoiding indexing inactive/deleted rows that are rarely queried.",
+    "topic": "postgresql",
+    "subtopic": "indexes",
+    "difficulty": "medium"
+  },
+  {
+    "id": "postgres-015",
+    "question": "What is `VACUUM` in PostgreSQL, and what happens if autovacuum is misconfigured?",
+    "answer": "PostgreSQL uses MVCC, leaving dead tuples after updates/deletes. `VACUUM` reclaims space for reuse and updates visibility maps; autovacuum performs this automatically. If misconfigured or lagging, dead tuples accumulate, table/index bloat increases, query performance degrades, and transaction ID wraparound risk appears. Monitoring autovacuum activity is critical in write-heavy systems.",
+    "topic": "postgresql",
+    "subtopic": "maintenance",
+    "difficulty": "hard"
+  },
+  {
+    "id": "postgres-016",
+    "question": "How do row-level locks (`FOR UPDATE`, `FOR SHARE`) work, and when are they needed?",
+    "answer": "Row-level locks protect selected rows from conflicting concurrent updates. `SELECT ... FOR UPDATE` locks rows so other transactions cannot update/delete them until commit/rollback; `FOR SHARE` is weaker and allows some read-sharing patterns. Use row locks for critical sections like inventory reservation, preventing lost updates when read-check-write must be atomic.",
+    "topic": "postgresql",
+    "subtopic": "transactions",
+    "difficulty": "hard"
+  },
+  {
+    "id": "postgres-017",
+    "question": "How would you model and index JSONB data in PostgreSQL for fast filtering?",
+    "answer": "Store semi-structured payload in `jsonb` and use GIN indexes for containment/path queries. Example: `CREATE INDEX idx_events_payload_gin ON events USING gin (payload jsonb_path_ops);`. Keep frequently filtered fields as regular typed columns when possible for simpler plans and constraints. JSONB is powerful but should complement, not replace, relational modeling.",
+    "topic": "postgresql",
+    "subtopic": "jsonb",
+    "difficulty": "medium"
+  },
+  {
+    "id": "postgres-018",
+    "question": "What is table partitioning in PostgreSQL, and what problems does it solve?",
+    "answer": "Partitioning splits a large logical table into smaller physical partitions by range/list/hash key. It helps manage very large datasets by improving maintenance (vacuum, archival, retention) and enabling partition pruning so queries touch fewer partitions. It is useful for time-series or multi-tenant workloads but requires careful key choice and index strategy.",
+    "topic": "postgresql",
+    "subtopic": "architecture",
+    "difficulty": "hard"
+  },
+  {
+    "id": "postgres-019",
+    "question": "How do you detect and handle deadlocks in PostgreSQL?",
+    "answer": "A deadlock occurs when transactions wait on each other in a cycle. PostgreSQL detects this and aborts one transaction with a deadlock error. Handle it by retrying safely in application code, keeping transactions short, and locking rows in consistent order across code paths. Use logs and `pg_stat_activity`/lock views to investigate recurring patterns.",
+    "topic": "postgresql",
+    "subtopic": "transactions",
+    "difficulty": "hard"
+  },
+  {
+    "id": "postgres-020",
+    "question": "What are connection pooling strategies for PostgreSQL, and why is PgBouncer often used?",
+    "answer": "PostgreSQL connections are relatively expensive and each consumes server resources. Pooling reuses connections to reduce overhead and stabilize throughput. Application-level pools (HikariCP) are common, while PgBouncer provides external pooling and can protect the database from connection storms across many services. Choose pooling mode carefully because transaction/session pooling affects features relying on session state.",
+    "topic": "postgresql",
+    "subtopic": "performance",
+    "difficulty": "medium"
   }
 ]

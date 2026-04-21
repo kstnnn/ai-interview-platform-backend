@@ -94,5 +94,69 @@
     "topic": "spring",
     "subtopic": "mvc",
     "difficulty": "medium"
+  },
+  {
+    "id": "spring-013",
+    "question": "What is the difference between `@WebMvcTest`, `@DataJpaTest`, and `@SpringBootTest`? When should each be used?",
+    "answer": "`@WebMvcTest` is a slice test for MVC controllers and related web components, usually with mocked services. `@DataJpaTest` is a slice for JPA repositories and entity mappings with an embedded/test DB. `@SpringBootTest` loads the full application context and is best for integration scenarios across layers. Use the smallest slice that validates the behavior you need to keep tests fast and focused.",
+    "topic": "spring",
+    "subtopic": "testing",
+    "difficulty": "medium"
+  },
+  {
+    "id": "spring-014",
+    "question": "How does `@ConfigurationProperties` differ from `@Value`, and why is it preferred in larger systems?",
+    "answer": "`@Value` injects single properties and is convenient for simple cases. `@ConfigurationProperties` binds grouped configuration into typed objects, supports nested structures, validation, metadata generation, and cleaner refactoring. In larger systems it improves maintainability and testability because configuration is centralized and strongly typed instead of spread across many string literals.",
+    "topic": "spring",
+    "subtopic": "boot",
+    "difficulty": "easy"
+  },
+  {
+    "id": "spring-015",
+    "question": "Explain how method security works with `@PreAuthorize`. How are authorities resolved from JWT claims?",
+    "answer": "`@PreAuthorize` evaluates SpEL expressions before method execution using the authenticated principal from `SecurityContext`. In JWT setups, claims are converted to `GrantedAuthority` values by a converter (`JwtAuthenticationConverter` or custom implementation). Correct mapping is critical, e.g., transforming role claims into `ROLE_*` authorities consistently. If mapping is wrong, authentication may succeed but authorization will fail.",
+    "topic": "spring",
+    "subtopic": "security",
+    "difficulty": "hard"
+  },
+  {
+    "id": "spring-016",
+    "question": "Why does `@Transactional` fail on self-invocation, and how can you fix it?",
+    "answer": "Spring applies `@Transactional` through proxies. When a method in a class calls another method in the same class directly, it bypasses the proxy, so transactional advice is not applied. Fixes include moving transactional logic to another bean, calling through the proxy (`AopContext`), or using AspectJ weaving. The cleanest approach is usually separating responsibilities across beans.",
+    "topic": "spring",
+    "subtopic": "data",
+    "difficulty": "hard"
+  },
+  {
+    "id": "spring-017",
+    "question": "How do you implement idempotency for a POST endpoint in Spring Boot?",
+    "answer": "Use an idempotency key (header/body field), store request fingerprint + response status in a durable store, and return the stored result for duplicate keys. Enforce uniqueness with a DB constraint or lock to prevent race conditions. Add TTL/cleanup strategy and clearly define which payload differences invalidate reuse. This pattern is common for payment, order, and webhook ingestion endpoints.",
+    "topic": "spring",
+    "subtopic": "mvc",
+    "difficulty": "hard"
+  },
+  {
+    "id": "spring-018",
+    "question": "How do Spring events work (`ApplicationEventPublisher`)? When should you use events vs direct service calls?",
+    "answer": "Spring events allow publishing domain/application events to decouple producers from consumers. Listeners can be synchronous or asynchronous (`@Async`). Use events for side effects that should not tightly couple to core transaction flow (notifications, analytics, cache invalidation). Use direct service calls when you need deterministic immediate behavior and clear control flow.",
+    "topic": "spring",
+    "subtopic": "core",
+    "difficulty": "medium"
+  },
+  {
+    "id": "spring-019",
+    "question": "How would you monitor and troubleshoot a Spring Boot service in production using Actuator and Micrometer?",
+    "answer": "Enable Actuator endpoints for health, metrics, info, and optionally env/config props with proper security. Use Micrometer to publish metrics (JVM, HTTP latency, DB pools, custom business counters) to Prometheus/Grafana or OTEL backends. Define SLO-focused alerts on error rate, latency, saturation, and restarts. Add correlation IDs and tracing to connect logs, metrics, and distributed traces.",
+    "topic": "spring",
+    "subtopic": "observability",
+    "difficulty": "medium"
+  },
+  {
+    "id": "spring-020",
+    "question": "What is optimistic locking in JPA/Spring Data, and how do you handle `OptimisticLockException` in APIs?",
+    "answer": "Optimistic locking uses a version field (e.g., `@Version`) to detect concurrent modifications. Update succeeds only if version matches; otherwise JPA throws `OptimisticLockException`. In APIs, return a conflict response (typically HTTP 409), include latest resource version/state, and let clients retry with refreshed data. It is ideal when conflicts are relatively rare and avoids long DB locks.",
+    "topic": "spring",
+    "subtopic": "data",
+    "difficulty": "medium"
   }
 ]

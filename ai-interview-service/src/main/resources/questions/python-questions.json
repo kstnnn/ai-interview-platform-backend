@@ -94,5 +94,69 @@
     "topic": "python",
     "subtopic": "concurrency",
     "difficulty": "hard"
+  },
+  {
+    "id": "python-013",
+    "question": "How does Python's reference model and garbage collection work? What problem does the cyclic GC solve?",
+    "answer": "CPython primarily uses reference counting: an object is deallocated when its refcount reaches zero. This is fast and deterministic for most cases. However, reference cycles (objects referencing each other) cannot be freed by refcount alone, so Python has a cyclic garbage collector that periodically detects and cleans unreachable cycles. Understanding this helps when debugging memory growth and object lifetime issues.",
+    "topic": "python",
+    "subtopic": "internals",
+    "difficulty": "medium"
+  },
+  {
+    "id": "python-014",
+    "question": "What are type hints in Python and how would you use mypy/pyright in a production codebase?",
+    "answer": "Type hints document contracts and enable static analysis without changing runtime semantics. In production, annotate public APIs first, enable mypy/pyright in CI, and gradually tighten strictness. Use `TypedDict`, `Protocol`, and generics where needed. Benefits include earlier bug detection, safer refactors, and better IDE support. Avoid over-annotation in unstable internals; focus on boundaries and shared interfaces.",
+    "topic": "python",
+    "subtopic": "typing",
+    "difficulty": "medium"
+  },
+  {
+    "id": "python-015",
+    "question": "Explain the difference between multiprocessing and multithreading in Python for CPU-bound workloads.",
+    "answer": "For CPU-bound tasks in CPython, threads are limited by the GIL, so they usually do not scale across cores. `multiprocessing` uses separate processes with independent interpreters, enabling true parallelism on multi-core machines. Trade-offs include higher memory usage and inter-process communication overhead. Use multiprocessing for heavy computation; use threads or asyncio for I/O-bound concurrency.",
+    "topic": "python",
+    "subtopic": "concurrency",
+    "difficulty": "hard"
+  },
+  {
+    "id": "python-016",
+    "question": "What pitfalls should you watch for when using mutable default arguments in Python functions?",
+    "answer": "Default argument values are evaluated once at function definition time, not per call. If the default is mutable (e.g., list/dict), modifications persist across calls and cause surprising shared state bugs. The standard fix is using `None` as default and creating a new object inside the function (`if arg is None: arg = []`).",
+    "topic": "python",
+    "subtopic": "basics",
+    "difficulty": "easy"
+  },
+  {
+    "id": "python-017",
+    "question": "How do packaging and dependency management work in modern Python projects (`pyproject.toml`)?",
+    "answer": "Modern Python packaging centers around `pyproject.toml`, which defines build system requirements and project metadata (PEP 517/518/621). Tools like Poetry, Hatch, or PDM manage dependencies, lock files, scripts, and publishing workflows. Compared to legacy `setup.py` + `requirements.txt`, this provides cleaner standards-based configuration and reproducible builds.",
+    "topic": "python",
+    "subtopic": "tooling",
+    "difficulty": "medium"
+  },
+  {
+    "id": "python-018",
+    "question": "In asyncio, what are common mistakes with `gather`, cancellation, and timeouts?",
+    "answer": "Common mistakes include assuming `gather` cancels all tasks on first failure without handling `return_exceptions`, ignoring cancellation propagation, and forgetting explicit timeouts (`asyncio.wait_for`). Another issue is mixing blocking calls inside async code, which freezes the event loop. Use structured cancellation, timeout boundaries, and offload blocking work with executors when needed.",
+    "topic": "python",
+    "subtopic": "concurrency",
+    "difficulty": "hard"
+  },
+  {
+    "id": "python-019",
+    "question": "When would you use a dataclass vs a Pydantic model vs a regular class?",
+    "answer": "Use dataclasses for lightweight in-process data containers with minimal boilerplate. Use Pydantic models when you need parsing, validation, and serialization of external input (APIs, configs). Use regular classes when behavior/lifecycle is complex and custom initialization or invariants dominate over simple data representation. Choosing the right type reduces complexity and improves clarity.",
+    "topic": "python",
+    "subtopic": "design",
+    "difficulty": "medium"
+  },
+  {
+    "id": "python-020",
+    "question": "How would you debug a Python service with high memory usage in production?",
+    "answer": "Start with process-level metrics (RSS growth, request patterns), then capture memory snapshots with tools like `tracemalloc`, `objgraph`, or heapy. Identify object types growing unexpectedly, inspect references, and correlate growth with code paths. Watch for caches without bounds, lingering global state, and large in-memory query results. Validate fixes with load tests and monitor memory over time.",
+    "topic": "python",
+    "subtopic": "performance",
+    "difficulty": "hard"
   }
 ]

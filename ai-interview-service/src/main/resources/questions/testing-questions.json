@@ -1,0 +1,82 @@
+[
+  {
+    "id": "testing-001",
+    "question": "What is the testing pyramid and why does it matter?",
+    "answer": "The testing pyramid emphasizes many fast unit tests, fewer integration tests, and a small number of end-to-end tests. This balances confidence with execution speed and maintenance cost. If the pyramid is inverted, feedback becomes slow and flaky, hurting developer productivity.",
+    "topic": "testing",
+    "subtopic": "strategy",
+    "difficulty": "easy"
+  },
+  {
+    "id": "testing-002",
+    "question": "How do you decide whether to mock a dependency or use a real implementation in tests?",
+    "answer": "Mock when dependency is slow, nondeterministic, external, or irrelevant to behavior under test. Use real implementations for critical integration boundaries where contracts and wiring must be validated. Over-mocking leads to brittle tests; under-mocking can make suites slow and unstable.",
+    "topic": "testing",
+    "subtopic": "unit_testing",
+    "difficulty": "medium"
+  },
+  {
+    "id": "testing-003",
+    "question": "What makes a test flaky and how do you systematically remove flakiness?",
+    "answer": "Flaky tests commonly come from time dependence, shared mutable state, race conditions, random data, and external service instability. Fix by isolating state, controlling clocks/random seeds, removing hidden async races, and replacing external dependencies with deterministic doubles. Track flakiness metrics and quarantine only temporarily.",
+    "topic": "testing",
+    "subtopic": "reliability",
+    "difficulty": "hard"
+  },
+  {
+    "id": "testing-004",
+    "question": "What is contract testing and where is it useful in microservices?",
+    "answer": "Contract testing verifies provider-consumer API expectations without full end-to-end environments. It is useful for reducing integration breakages and enabling independent deployments. Producer and consumer pipelines both validate the shared contract before release.",
+    "topic": "testing",
+    "subtopic": "integration",
+    "difficulty": "medium"
+  },
+  {
+    "id": "testing-005",
+    "question": "How do you test asynchronous/event-driven workflows?",
+    "answer": "Use deterministic test harnesses with controlled queues/topics, awaitility/polling with bounded timeouts, and assertions on eventual states plus side effects. Validate idempotency, retries, and out-of-order handling. Keep tests resilient but strict on business outcomes.",
+    "topic": "testing",
+    "subtopic": "integration",
+    "difficulty": "hard"
+  },
+  {
+    "id": "testing-006",
+    "question": "What is the difference between code coverage and test effectiveness?",
+    "answer": "Coverage measures what code is executed, not whether behavior is meaningfully verified. High coverage can coexist with weak assertions. Effectiveness comes from asserting business-critical behavior, edge cases, and failure paths. Coverage is a useful signal, but not a quality guarantee.",
+    "topic": "testing",
+    "subtopic": "strategy",
+    "difficulty": "easy"
+  },
+  {
+    "id": "testing-007",
+    "question": "How would you test database migrations safely before production rollout?",
+    "answer": "Run migrations in CI against realistic schema snapshots and representative data volume. Validate backward compatibility with rolling deployment assumptions, index build impact, and rollback/recovery procedures. Include smoke checks for application startup and key queries after migration.",
+    "topic": "testing",
+    "subtopic": "database",
+    "difficulty": "medium"
+  },
+  {
+    "id": "testing-008",
+    "question": "What is property-based testing and when is it valuable?",
+    "answer": "Property-based testing generates many randomized inputs to verify general invariants instead of single examples. It is valuable for parsers, format converters, business rules, and math-heavy logic where edge cases are easy to miss. Counterexample shrinking helps isolate minimal failing cases.",
+    "topic": "testing",
+    "subtopic": "advanced",
+    "difficulty": "hard"
+  },
+  {
+    "id": "testing-009",
+    "question": "How do you keep API tests stable while APIs evolve?",
+    "answer": "Use explicit versioning, contract tests, and tolerant assertions for non-critical fields while being strict on core behavior. Centralize test fixtures/builders and avoid coupling tests to unrelated response details. Deprecation windows and compatibility checks in CI reduce surprises.",
+    "topic": "testing",
+    "subtopic": "api_testing",
+    "difficulty": "medium"
+  },
+  {
+    "id": "testing-010",
+    "question": "What testing signals would you put on a release gate in CI/CD?",
+    "answer": "Use fast unit/slice suite pass, key integration smoke tests, static analysis, security checks, and migration verification as release gates. Track flaky test ratio and test duration trends. Gates should protect production risk while preserving reasonable delivery speed.",
+    "topic": "testing",
+    "subtopic": "ci_cd",
+    "difficulty": "medium"
+  }
+]
