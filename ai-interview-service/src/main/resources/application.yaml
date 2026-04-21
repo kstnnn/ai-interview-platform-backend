@@ -41,6 +41,9 @@ spring:
       ddl-auto: validate
     show-sql: true
     open-in-view: false
+  liquibase:
+    enabled: true
+    change-log: classpath:/db.changelog/db.changelog-master.yaml
   threads:
     virtual:
       enabled: true

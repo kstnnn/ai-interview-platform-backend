@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - include:
+      file: changesets/001-create-interview-domain.sql
+      relativeToChangelogFile: true
+  - include:
+      file: changesets/002-add-min-questions-per-topic-and-selection-reason-check.sql
+      relativeToChangelogFile: true
+  - include:
+      file: changesets/003-add-follow-up-policy-and-question-type.sql
+      relativeToChangelogFile: true
