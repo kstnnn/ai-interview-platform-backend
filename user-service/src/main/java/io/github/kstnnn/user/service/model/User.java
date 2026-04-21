@@ -1,8 +1,5 @@
-package io.github.kstnnn.user.service.entity;
+package io.github.kstnnn.user.service.model;
 
-import io.github.kstnnn.user.service.enums.UserRole;
-import io.github.kstnnn.user.service.enums.UserStatus;
-import io.github.kstnnn.user.service.enums.UserType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;

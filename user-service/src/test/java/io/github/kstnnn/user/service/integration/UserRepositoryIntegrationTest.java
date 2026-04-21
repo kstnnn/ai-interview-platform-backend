@@ -6,10 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.github.kstnnn.user.service.entity.User;
-import io.github.kstnnn.user.service.enums.UserRole;
-import io.github.kstnnn.user.service.enums.UserStatus;
-import io.github.kstnnn.user.service.enums.UserType;
+import io.github.kstnnn.user.service.model.User;
+import io.github.kstnnn.user.service.model.UserRole;
+import io.github.kstnnn.user.service.model.UserStatus;
+import io.github.kstnnn.user.service.model.UserType;
 import io.github.kstnnn.user.service.repository.UserRepository;
 import java.util.Set;
 import org.junit.jupiter.api.Test;

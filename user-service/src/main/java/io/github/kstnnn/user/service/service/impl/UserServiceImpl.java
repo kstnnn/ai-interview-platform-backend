@@ -2,7 +2,7 @@ package io.github.kstnnn.user.service.service.impl;
 
 import io.github.kstnnn.user.service.dto.UserCreateRequestDto;
 import io.github.kstnnn.user.service.dto.UserResponseDto;
-import io.github.kstnnn.user.service.enums.UserStatus;
+import io.github.kstnnn.user.service.model.UserStatus;
 import io.github.kstnnn.user.service.exception.UserAlreadyDeletedException;
 import io.github.kstnnn.user.service.exception.UserAlreadyExistsException;
 import io.github.kstnnn.user.service.exception.UserNotFoundException;

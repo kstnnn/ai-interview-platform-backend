@@ -1,7 +1,7 @@
 package io.github.kstnnn.user.service.repository;
 
 import io.github.kstnnn.user.service.dto.UserResponseDto;
-import io.github.kstnnn.user.service.entity.User;
+import io.github.kstnnn.user.service.model.User;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,4 +1,4 @@
-package io.github.kstnnn.user.service.enums;
+package io.github.kstnnn.user.service.model;
 
 public enum UserType {
   BUSINESS,

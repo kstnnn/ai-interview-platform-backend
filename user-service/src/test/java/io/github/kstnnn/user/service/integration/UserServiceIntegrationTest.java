@@ -5,10 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.github.kstnnn.user.service.dto.UserCreateRequestDto;
-import io.github.kstnnn.user.service.entity.User;
-import io.github.kstnnn.user.service.enums.UserRole;
-import io.github.kstnnn.user.service.enums.UserStatus;
-import io.github.kstnnn.user.service.enums.UserType;
+import io.github.kstnnn.user.service.model.User;
+import io.github.kstnnn.user.service.model.UserRole;
+import io.github.kstnnn.user.service.model.UserStatus;
+import io.github.kstnnn.user.service.model.UserType;
 import io.github.kstnnn.user.service.exception.UserAlreadyDeletedException;
 import io.github.kstnnn.user.service.exception.UserAlreadyExistsException;
 import io.github.kstnnn.user.service.exception.UserNotFoundException;
