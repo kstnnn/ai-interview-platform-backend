@@ -50,12 +50,9 @@ CREATE TABLE questions (
     question_text TEXT NOT NULL,
     expected_answer TEXT NOT NULL,
     active BOOLEAN NOT NULL DEFAULT TRUE,
-    version INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT ck_questions_difficulty
-        CHECK (difficulty IN ('EASY', 'MEDIUM', 'HARD')),
-    CONSTRAINT ck_questions_version
-        CHECK (version > 0)
+        CHECK (difficulty IN ('EASY', 'MEDIUM', 'HARD'))
 );
 
 CREATE TABLE session_questions (

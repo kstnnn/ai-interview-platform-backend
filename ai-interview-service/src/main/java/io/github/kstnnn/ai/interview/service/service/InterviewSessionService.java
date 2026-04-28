@@ -1,6 +1,6 @@
 package io.github.kstnnn.ai.interview.service.service;
 
-public interface AiSessionService {
+public interface InterviewSessionService {
   String generateFollowUpQuestion(
       String primaryQuestion,
       String expectedAnswer,

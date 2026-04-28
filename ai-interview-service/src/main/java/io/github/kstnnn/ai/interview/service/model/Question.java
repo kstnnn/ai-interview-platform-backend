@@ -49,9 +49,6 @@ public class Question {
   @Column(nullable = false)
   private boolean active = true;
 
-  @Column(nullable = false)
-  private Integer version = 1;
-
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
 

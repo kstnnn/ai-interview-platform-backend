@@ -1,6 +1,6 @@
 package io.github.kstnnn.ai.interview.service.service.impl;
 
-import io.github.kstnnn.ai.interview.service.service.AiSessionService;
+import io.github.kstnnn.ai.interview.service.service.InterviewSessionService;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,7 @@ import org.springframework.util.StreamUtils;
 
 @Service
 @RequiredArgsConstructor
-public class AiSessionServiceImpl implements AiSessionService {
+public class InterviewSessionServiceImpl implements InterviewSessionService {
 
   private final ChatClient chatClient;
 
