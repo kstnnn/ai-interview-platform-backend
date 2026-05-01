@@ -3,80 +3,80 @@
     "id": "hibernate-001",
     "question": "What is the difference between JPA and Hibernate?",
     "answer": "JPA is a specification for ORM APIs, while Hibernate is a concrete implementation that also provides vendor-specific extensions. Coding to JPA interfaces improves portability, but Hibernate-specific features can offer advanced capabilities and performance tuning.",
-    "topic": "hibernate",
-    "subtopic": "core",
+    "topic": "orm_fundamentals",
+    "subtopic": "jpa_hibernate",
     "difficulty": "easy"
   },
   {
     "id": "hibernate-002",
     "question": "Explain entity states in Hibernate: transient, persistent, detached, removed.",
     "answer": "Transient entities are new objects not managed by persistence context. Persistent entities are currently managed and tracked for dirty checking. Detached entities were managed previously but are now outside context, so changes are not auto-synced. Removed entities are scheduled for deletion. Understanding states prevents confusion around updates and merges.",
-    "topic": "hibernate",
-    "subtopic": "core",
+    "topic": "orm_fundamentals",
+    "subtopic": "entity_states_hibernate_transient",
     "difficulty": "easy"
   },
   {
     "id": "hibernate-003",
     "question": "What causes N+1 queries in Hibernate and how do you fix them?",
     "answer": "N+1 happens when fetching parent entities and lazily loading children per row. Fixes include fetch joins, `@EntityGraph`, batch fetching, and projection queries tailored to API needs. Measure query counts and execution time to verify improvements.",
-    "topic": "hibernate",
-    "subtopic": "performance",
+    "topic": "performance_tuning",
+    "subtopic": "causes_n_queries_hibernate",
     "difficulty": "medium"
   },
   {
     "id": "hibernate-004",
     "question": "What is the first-level cache in Hibernate and how does it affect query behavior?",
     "answer": "The first-level cache is the persistence context scoped to a session/entity manager. It guarantees identity within a transaction and can serve repeated entity lookups without extra SQL. It does not cache arbitrary query results unless explicitly configured via second-level/query cache.",
-    "topic": "hibernate",
-    "subtopic": "caching",
+    "topic": "caching",
+    "subtopic": "first_level_cache_hibernate",
     "difficulty": "medium"
   },
   {
     "id": "hibernate-005",
     "question": "When should you use `merge()` vs updating a managed entity directly?",
     "answer": "If an entity is already managed, update fields directly and rely on dirty checking. `merge()` is for detached instances; it returns a managed copy and may trigger additional selects. Overusing `merge()` can hide lifecycle issues and hurt performance.",
-    "topic": "hibernate",
-    "subtopic": "core",
+    "topic": "orm_fundamentals",
+    "subtopic": "should_use_vs_updating",
     "difficulty": "medium"
   },
   {
     "id": "hibernate-006",
     "question": "How does optimistic locking with `@Version` work in Hibernate?",
     "answer": "`@Version` adds a version column checked on update/delete. If another transaction modified the row first, version mismatch causes optimistic lock exception, preventing lost updates. Applications should handle conflicts with retries or user-visible conflict responses.",
-    "topic": "hibernate",
-    "subtopic": "transactions",
+    "topic": "transactions_and_locking",
+    "subtopic": "optimistic_locking_work_hibernate",
     "difficulty": "medium"
   },
   {
     "id": "hibernate-007",
     "question": "What are common pitfalls of `FetchType.EAGER`?",
     "answer": "EAGER loading can cause large object graphs, unnecessary joins, and major performance regressions, especially in list endpoints. It also makes behavior less predictable across use cases. Default to LAZY and explicitly fetch what each query needs.",
-    "topic": "hibernate",
-    "subtopic": "performance",
+    "topic": "performance_tuning",
+    "subtopic": "are_common_pitfalls",
     "difficulty": "hard"
   },
   {
     "id": "hibernate-008",
     "question": "How do you map many-to-many associations safely in enterprise apps?",
     "answer": "Simple many-to-many is easy to start but often insufficient when relation needs attributes (createdAt, role, status). In that case, model an explicit join entity instead of direct many-to-many mapping. This improves clarity, query control, and auditability.",
-    "topic": "hibernate",
-    "subtopic": "mapping",
+    "topic": "entity_mapping",
+    "subtopic": "map_many_associations_safely",
     "difficulty": "hard"
   },
   {
     "id": "hibernate-009",
     "question": "What is Hibernate batch writing and when does it help?",
     "answer": "Batch writing groups multiple insert/update statements to reduce network round trips and improve throughput. Enable via JDBC batch settings and ensure entity ordering is compatible. It helps in bulk ingestion/update flows but needs careful memory management (flush/clear cycles).",
-    "topic": "hibernate",
-    "subtopic": "performance",
+    "topic": "performance_tuning",
+    "subtopic": "hibernate_batch_writing_it",
     "difficulty": "hard"
   },
   {
     "id": "hibernate-010",
     "question": "How would you debug a production issue where Hibernate suddenly executes too many queries?",
     "answer": "Enable SQL + parameter logging in controlled environments, compare before/after code paths, inspect fetch plans, and use APM traces to correlate endpoints to query bursts. Look for accidental lazy traversal in serializers and changed mappings. Add query-count regression checks for critical endpoints.",
-    "topic": "hibernate",
-    "subtopic": "observability",
+    "topic": "observability",
+    "subtopic": "debug_production_issue_where",
     "difficulty": "hard"
   }
 ]

@@ -3,80 +3,80 @@
     "id": "kafka-001",
     "question": "What are Kafka topics, partitions, and offsets?",
     "answer": "A topic is a named event stream. Partitions split a topic for parallelism and scalability. Offsets are monotonically increasing positions of records within a partition. Consumers track offsets to resume processing and control delivery semantics.",
-    "topic": "kafka",
-    "subtopic": "core",
+    "topic": "messaging_fundamentals",
+    "subtopic": "are_kafka_topics_partitions",
     "difficulty": "easy"
   },
   {
     "id": "kafka-002",
     "question": "How does consumer group rebalancing work and why can it cause latency spikes?",
     "answer": "In a consumer group, partitions are assigned among members. When members join/leave or topic metadata changes, Kafka rebalances assignments. During rebalance, processing pauses and some stateful work may be reinitialized, causing latency spikes. Cooperative rebalancing and stable consumer membership reduce disruption.",
-    "topic": "kafka",
-    "subtopic": "consumers",
+    "topic": "consumer_patterns",
+    "subtopic": "consumer_group_rebalancing_work",
     "difficulty": "medium"
   },
   {
     "id": "kafka-003",
     "question": "What delivery guarantees does Kafka provide: at-most-once, at-least-once, exactly-once?",
     "answer": "At-most-once may lose messages but avoids duplicates. At-least-once avoids loss but can produce duplicates (requires idempotent processing). Exactly-once semantics in Kafka involve idempotent producers plus transactional writes/reads in specific patterns; it is strong but more complex and not universal across external side effects.",
-    "topic": "kafka",
-    "subtopic": "reliability",
+    "topic": "reliability_and_delivery",
+    "subtopic": "delivery_guarantees_kafka_provide",
     "difficulty": "hard"
   },
   {
     "id": "kafka-004",
     "question": "How do partition keys affect ordering and scalability?",
     "answer": "Kafka guarantees order only within a partition. Partition keys determine which records land in the same partition; same key gives per-key ordering. Poor key choice can create hot partitions and throughput bottlenecks. Good keys balance load while preserving required ordering semantics.",
-    "topic": "kafka",
-    "subtopic": "producers",
+    "topic": "producer_patterns",
+    "subtopic": "partition_keys_affect_ordering",
     "difficulty": "medium"
   },
   {
     "id": "kafka-005",
     "question": "What is the role of replication factor and `min.insync.replicas` in durability?",
     "answer": "Replication factor controls how many broker copies each partition has. `min.insync.replicas` defines required in-sync replicas for successful writes with `acks=all`. Higher values improve durability but may reduce availability during failures. Tune these settings based on reliability requirements.",
-    "topic": "kafka",
-    "subtopic": "reliability",
+    "topic": "reliability_and_delivery",
+    "subtopic": "role_replication_factor_durability",
     "difficulty": "hard"
   },
   {
     "id": "kafka-006",
     "question": "How do you implement idempotent consumers when duplicates are possible?",
     "answer": "Use a deduplication key (event ID/business key), persist processed IDs or version checks in a durable store, and make side effects idempotent. Offset commits should occur only after successful processing. This ensures replays and duplicates do not corrupt business state.",
-    "topic": "kafka",
-    "subtopic": "consumers",
+    "topic": "consumer_patterns",
+    "subtopic": "implement_idempotent_consumers_duplicates",
     "difficulty": "hard"
   },
   {
     "id": "kafka-007",
     "question": "What is Schema Registry and why is it important with Avro/Protobuf events?",
     "answer": "Schema Registry stores versioned schemas and enforces compatibility rules between producers and consumers. With Avro/Protobuf, it helps evolve event contracts safely across teams and deployments. Without schema governance, consumers can break silently when payload formats change.",
-    "topic": "kafka",
-    "subtopic": "schema",
+    "topic": "schema_evolution",
+    "subtopic": "schema_registry_it_important",
     "difficulty": "medium"
   },
   {
     "id": "kafka-008",
     "question": "How do you monitor Kafka consumer lag and what actions do you take when lag grows?",
     "answer": "Consumer lag is the difference between produced offsets and committed consumer offsets. Monitor lag per partition/group and correlate with processing latency and error rates. If lag grows, check consumer throughput, rebalance churn, downstream bottlenecks, and partition skew; then scale consumers, optimize processing, or increase partitions if appropriate.",
-    "topic": "kafka",
-    "subtopic": "observability",
+    "topic": "observability",
+    "subtopic": "monitor_kafka_consumer_lag",
     "difficulty": "medium"
   },
   {
     "id": "kafka-009",
     "question": "What is the outbox pattern and why is it commonly used with Kafka?",
     "answer": "The outbox pattern writes domain changes and outbound events atomically in the same database transaction, then publishes outbox rows asynchronously to Kafka. It avoids dual-write inconsistencies between DB and broker and improves reliability of event-driven architectures.",
-    "topic": "kafka",
-    "subtopic": "architecture",
+    "topic": "event_driven_architecture",
+    "subtopic": "outbox_pattern_it_commonly",
     "difficulty": "hard"
   },
   {
     "id": "kafka-010",
     "question": "When should you use Kafka Streams vs a consumer application with custom processing?",
     "answer": "Kafka Streams is ideal for stateful stream processing (windowing, joins, aggregations) with built-in state stores and fault tolerance. Custom consumers are better for simpler workflows or when business logic integrates deeply with external systems. Choose based on complexity, statefulness, and operational constraints.",
-    "topic": "kafka",
-    "subtopic": "stream_processing",
+    "topic": "stream_processing",
+    "subtopic": "should_use_kafka_streams",
     "difficulty": "medium"
   }
 ]

@@ -3,160 +3,160 @@
     "id": "python-001",
     "question": "What is the difference between a `list` and a `tuple` in Python? When would you use each?",
     "answer": "Lists are mutable (can be modified after creation) and use square brackets: `[1, 2, 3]`. Tuples are immutable (cannot be changed) and use parentheses: `(1, 2, 3)`. Use lists when you need to add, remove, or modify elements. Use tuples for fixed collections (coordinates, database records), as dictionary keys (lists can't be keys), and when you want to signal that data should not be modified. Tuples are also slightly more memory-efficient.",
-    "topic": "python",
-    "subtopic": "basics",
+    "topic": "language_basics",
+    "subtopic": "python_use_each",
     "difficulty": "easy"
   },
   {
     "id": "python-002",
     "question": "What are Python decorators? Write a simple decorator that logs function calls.",
     "answer": "Decorators are functions that wrap other functions to add behavior without modifying them. They use the `@decorator` syntax. Example:\n```python\ndef log_calls(func):\n    def wrapper(*args, **kwargs):\n        print(f\"Calling {func.__name__} with {args}\")\n        result = func(*args, **kwargs)\n        print(f\"{func.__name__} returned {result}\")\n        return result\n    return wrapper\n\n@log_calls\ndef add(a, b): return a + b\n```\nThe decorator returns a wrapper function that adds logging before/after the original function executes.",
-    "topic": "python",
-    "subtopic": "decorators",
+    "topic": "functional_features",
+    "subtopic": "are_python_decorators_write",
     "difficulty": "medium"
   },
   {
     "id": "python-003",
     "question": "What is a Python generator? How does `yield` differ from `return`? Give a practical example.",
     "answer": "Generators produce values lazily, one at a time, using `yield` instead of `return`. `return` exits the function; `yield` pauses it and resumes on the next iteration. Example:\n```python\ndef fibonacci(n):\n    a, b = 0, 1\n    for _ in range(n):\n        yield a\n        a, b = b, a + b\n```\nThis generates Fibonacci numbers on demand without storing all of them in memory. Generators are memory-efficient for large or infinite sequences.",
-    "topic": "python",
-    "subtopic": "generators",
+    "topic": "iterators_and_generators",
+    "subtopic": "python_generator_differ_give",
     "difficulty": "medium"
   },
   {
     "id": "python-004",
     "question": "What is the difference between `__str__` and `__repr__` in Python?",
     "answer": "`__str__` returns a human-readable string representation, used by `print()` and `str()`. `__repr__` returns an unambiguous, developer-oriented representation, ideally valid Python code that could recreate the object, used by `repr()` and in the interactive console. If `__str__` is not defined, Python falls back to `__repr__`. Rule of thumb: `__repr__` for debugging, `__str__` for end users.",
-    "topic": "python",
-    "subtopic": "basics",
+    "topic": "language_basics",
+    "subtopic": "python",
     "difficulty": "easy"
   },
   {
     "id": "python-005",
     "question": "What is the Global Interpreter Lock (GIL) in Python? How does it affect multi-threaded programs?",
-    "answer": "The GIL is a mutex that allows only one thread to execute Python bytecode at a time, even on multi-core CPUs. This means CPU-bound Python threads don't run in true parallelism — they're interleaved, not concurrent. The GIL exists for CPython's memory management safety. Solutions for CPU-bound work: use `multiprocessing` (separate processes, no GIL), or use C extensions (NumPy releases the GIL). For I/O-bound work (network, files), threading is still effective because the GIL is released during I/O.",
-    "topic": "python",
-    "subtopic": "concurrency",
+    "answer": "The GIL is a mutex that allows only one thread to execute Python bytecode at a time, even on multi-core CPUs. This means CPU-bound Python threads don't run in true parallelism \u2014 they're interleaved, not concurrent. The GIL exists for CPython's memory management safety. Solutions for CPU-bound work: use `multiprocessing` (separate processes, no GIL), or use C extensions (NumPy releases the GIL). For I/O-bound work (network, files), threading is still effective because the GIL is released during I/O.",
+    "topic": "concurrency",
+    "subtopic": "global_interpreter_lock_gil",
     "difficulty": "hard"
   },
   {
     "id": "python-006",
     "question": "What is a Python context manager? How do you implement one using `with`?",
     "answer": "A context manager manages resources using the `with` statement, ensuring proper cleanup. It implements `__enter__` (setup, returns resource) and `__exit__` (cleanup). Example:\n```python\nclass FileHandler:\n    def __init__(self, filename):\n        self.filename = filename\n    def __enter__(self):\n        self.file = open(self.filename, 'r')\n        return self.file\n    def __exit__(self, exc_type, exc_val, exc_tb):\n        self.file.close()\n```\nYou can also use `@contextmanager` decorator with `yield` for simpler cases.",
-    "topic": "python",
-    "subtopic": "basics",
+    "topic": "language_basics",
+    "subtopic": "python_context_manager_implement",
     "difficulty": "medium"
   },
   {
     "id": "python-007",
     "question": "What are list comprehensions? Convert this loop to a list comprehension: `result = []; for x in range(10): if x % 2 == 0: result.append(x * 2)`",
     "answer": "List comprehensions provide a concise way to create lists. The converted version: `result = [x * 2 for x in range(10) if x % 2 == 0]`. The syntax is `[expression for item in iterable if condition]`. They're more readable and faster than equivalent for-loops with append. You can also use set comprehensions `{x for x in range(10)}` and dict comprehensions `{x: x*2 for x in range(10)}`.",
-    "topic": "python",
-    "subtopic": "basics",
+    "topic": "language_basics",
+    "subtopic": "are_list_comprehensions_convert",
     "difficulty": "easy"
   },
   {
     "id": "python-008",
     "question": "What is the difference between `@staticmethod` and `@classmethod` in Python?",
-    "answer": "`@staticmethod` doesn't receive any implicit first argument — it's just a regular function inside a class namespace, with no access to class or instance state. `@classmethod` receives the class as the first argument (`cls`), allowing it to access/modify class state and create alternative constructors. Example: `@classmethod def from_string(cls, date_str)` can create an instance from a string. `@staticmethod def is_valid_date(date)` just validates without needing class access.",
-    "topic": "python",
-    "subtopic": "oop",
+    "answer": "`@staticmethod` doesn't receive any implicit first argument \u2014 it's just a regular function inside a class namespace, with no access to class or instance state. `@classmethod` receives the class as the first argument (`cls`), allowing it to access/modify class state and create alternative constructors. Example: `@classmethod def from_string(cls, date_str)` can create an instance from a string. `@staticmethod def is_valid_date(date)` just validates without needing class access.",
+    "topic": "object_model",
+    "subtopic": "python",
     "difficulty": "medium"
   },
   {
     "id": "python-009",
     "question": "What are Python's `*args` and `**kwargs`? When would you use them?",
     "answer": "`*args` collects positional arguments as a tuple. `**kwargs` collects keyword arguments as a dictionary. They allow functions to accept a variable number of arguments. Example:\n```python\ndef greet(greeting, *names, **options):\n    for name in names:\n        print(f\"{greeting}, {name}!\")\n    if options.get('formal'):\n        print(\"(Formal mode)\")\n```\nCalled as: `greet(\"Hello\", \"Alice\", \"Bob\", formal=True)`. Common in decorators, wrappers, and APIs that pass arguments through to other functions using `func(*args, **kwargs)`.",
-    "topic": "python",
-    "subtopic": "basics",
+    "topic": "language_basics",
+    "subtopic": "are_python_s_use",
     "difficulty": "easy"
   },
   {
     "id": "python-010",
     "question": "What is the difference between `deepcopy` and a shallow copy in Python?",
-    "answer": "A shallow copy (`copy.copy()` or `list.copy()`) creates a new object but references the same nested objects — changes to nested objects affect both copies. `deepcopy` (`copy.deepcopy()`) creates a new object AND recursively copies all nested objects — complete independence. Example: `a = [[1,2], [3,4]]; b = a.copy()` — modifying `b[0][0]` also changes `a[0][0]`. With `deepcopy`, they're fully independent. Use shallow copy for flat structures, deepcopy for nested mutable data.",
-    "topic": "python",
-    "subtopic": "basics",
+    "answer": "A shallow copy (`copy.copy()` or `list.copy()`) creates a new object but references the same nested objects \u2014 changes to nested objects affect both copies. `deepcopy` (`copy.deepcopy()`) creates a new object AND recursively copies all nested objects \u2014 complete independence. Example: `a = [[1,2], [3,4]]; b = a.copy()` \u2014 modifying `b[0][0]` also changes `a[0][0]`. With `deepcopy`, they're fully independent. Use shallow copy for flat structures, deepcopy for nested mutable data.",
+    "topic": "language_basics",
+    "subtopic": "shallow_copy_python",
     "difficulty": "medium"
   },
   {
     "id": "python-011",
     "question": "What is a Python virtual environment and why is it important? How do you create and activate one?",
     "answer": "A virtual environment isolates project dependencies to avoid conflicts between projects. Created with `python -m venv venv`, which creates a `venv/` directory with a separate Python interpreter and site-packages. Activated with `source venv/bin/activate` (Linux/macOS) or `venv\\Scripts\\activate` (Windows). After activation, `pip install` installs packages only in that environment. This prevents version conflicts (e.g., project A needs Django 3.x, project B needs Django 4.x).",
-    "topic": "python",
-    "subtopic": "tooling",
+    "topic": "packaging_and_tooling",
+    "subtopic": "python_virtual_environment_it",
     "difficulty": "easy"
   },
   {
     "id": "python-012",
     "question": "What is the difference between `asyncio` and threading in Python? When would you use `async/await`?",
-    "answer": "Threading uses OS threads with preemptive multitasking — the OS decides when to switch. `asyncio` uses cooperative multitasking with a single thread and an event loop — tasks voluntarily yield control with `await`. `async/await` is ideal for I/O-bound work (HTTP requests, DB queries, file I/O) because it handles thousands of concurrent connections with minimal overhead. Use threading for legacy sync libraries or when you need true parallelism with multiprocessing. `asyncio` is more scalable for high-concurrency I/O scenarios.",
-    "topic": "python",
-    "subtopic": "concurrency",
+    "answer": "Threading uses OS threads with preemptive multitasking \u2014 the OS decides when to switch. `asyncio` uses cooperative multitasking with a single thread and an event loop \u2014 tasks voluntarily yield control with `await`. `async/await` is ideal for I/O-bound work (HTTP requests, DB queries, file I/O) because it handles thousands of concurrent connections with minimal overhead. Use threading for legacy sync libraries or when you need true parallelism with multiprocessing. `asyncio` is more scalable for high-concurrency I/O scenarios.",
+    "topic": "concurrency",
+    "subtopic": "threading_python_use",
     "difficulty": "hard"
   },
   {
     "id": "python-013",
     "question": "How does Python's reference model and garbage collection work? What problem does the cyclic GC solve?",
     "answer": "CPython primarily uses reference counting: an object is deallocated when its refcount reaches zero. This is fast and deterministic for most cases. However, reference cycles (objects referencing each other) cannot be freed by refcount alone, so Python has a cyclic garbage collector that periodically detects and cleans unreachable cycles. Understanding this helps when debugging memory growth and object lifetime issues.",
-    "topic": "python",
-    "subtopic": "internals",
+    "topic": "runtime_internals",
+    "subtopic": "python_s_reference_model",
     "difficulty": "medium"
   },
   {
     "id": "python-014",
     "question": "What are type hints in Python and how would you use mypy/pyright in a production codebase?",
     "answer": "Type hints document contracts and enable static analysis without changing runtime semantics. In production, annotate public APIs first, enable mypy/pyright in CI, and gradually tighten strictness. Use `TypedDict`, `Protocol`, and generics where needed. Benefits include earlier bug detection, safer refactors, and better IDE support. Avoid over-annotation in unstable internals; focus on boundaries and shared interfaces.",
-    "topic": "python",
-    "subtopic": "typing",
+    "topic": "type_hints",
+    "subtopic": "are_type_hints_python",
     "difficulty": "medium"
   },
   {
     "id": "python-015",
     "question": "Explain the difference between multiprocessing and multithreading in Python for CPU-bound workloads.",
     "answer": "For CPU-bound tasks in CPython, threads are limited by the GIL, so they usually do not scale across cores. `multiprocessing` uses separate processes with independent interpreters, enabling true parallelism on multi-core machines. Trade-offs include higher memory usage and inter-process communication overhead. Use multiprocessing for heavy computation; use threads or asyncio for I/O-bound concurrency.",
-    "topic": "python",
-    "subtopic": "concurrency",
+    "topic": "concurrency",
+    "subtopic": "multiprocessing_multithreading_python_cpu",
     "difficulty": "hard"
   },
   {
     "id": "python-016",
     "question": "What pitfalls should you watch for when using mutable default arguments in Python functions?",
     "answer": "Default argument values are evaluated once at function definition time, not per call. If the default is mutable (e.g., list/dict), modifications persist across calls and cause surprising shared state bugs. The standard fix is using `None` as default and creating a new object inside the function (`if arg is None: arg = []`).",
-    "topic": "python",
-    "subtopic": "basics",
+    "topic": "language_basics",
+    "subtopic": "pitfalls_should_watch_using",
     "difficulty": "easy"
   },
   {
     "id": "python-017",
     "question": "How do packaging and dependency management work in modern Python projects (`pyproject.toml`)?",
     "answer": "Modern Python packaging centers around `pyproject.toml`, which defines build system requirements and project metadata (PEP 517/518/621). Tools like Poetry, Hatch, or PDM manage dependencies, lock files, scripts, and publishing workflows. Compared to legacy `setup.py` + `requirements.txt`, this provides cleaner standards-based configuration and reproducible builds.",
-    "topic": "python",
-    "subtopic": "tooling",
+    "topic": "packaging_and_tooling",
+    "subtopic": "packaging_dependency_management_work",
     "difficulty": "medium"
   },
   {
     "id": "python-018",
     "question": "In asyncio, what are common mistakes with `gather`, cancellation, and timeouts?",
     "answer": "Common mistakes include assuming `gather` cancels all tasks on first failure without handling `return_exceptions`, ignoring cancellation propagation, and forgetting explicit timeouts (`asyncio.wait_for`). Another issue is mixing blocking calls inside async code, which freezes the event loop. Use structured cancellation, timeout boundaries, and offload blocking work with executors when needed.",
-    "topic": "python",
-    "subtopic": "concurrency",
+    "topic": "concurrency",
+    "subtopic": "asyncio_are_common_mistakes",
     "difficulty": "hard"
   },
   {
     "id": "python-019",
     "question": "When would you use a dataclass vs a Pydantic model vs a regular class?",
     "answer": "Use dataclasses for lightweight in-process data containers with minimal boilerplate. Use Pydantic models when you need parsing, validation, and serialization of external input (APIs, configs). Use regular classes when behavior/lifecycle is complex and custom initialization or invariants dominate over simple data representation. Choosing the right type reduces complexity and improves clarity.",
-    "topic": "python",
-    "subtopic": "design",
+    "topic": "application_design",
+    "subtopic": "use_dataclass_vs_pydantic",
     "difficulty": "medium"
   },
   {
     "id": "python-020",
     "question": "How would you debug a Python service with high memory usage in production?",
     "answer": "Start with process-level metrics (RSS growth, request patterns), then capture memory snapshots with tools like `tracemalloc`, `objgraph`, or heapy. Identify object types growing unexpectedly, inspect references, and correlate growth with code paths. Watch for caches without bounds, lingering global state, and large in-memory query results. Validate fixes with load tests and monitor memory over time.",
-    "topic": "python",
-    "subtopic": "performance",
+    "topic": "performance",
+    "subtopic": "debug_python_service_high",
     "difficulty": "hard"
   }
 ]

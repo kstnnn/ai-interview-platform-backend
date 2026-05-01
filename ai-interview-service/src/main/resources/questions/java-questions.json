@@ -3,160 +3,160 @@
     "id": "java-001",
     "question": "What is the difference between ArrayList and LinkedList? When would you use one over the other?",
     "answer": "ArrayList uses a dynamic array under the hood, providing O(1) random access but O(n) insertion/deletion in the middle. LinkedList uses a doubly-linked list, offering O(1) insertion/deletion at ends but O(n) random access. Use ArrayList for read-heavy scenarios and LinkedList when you frequently insert/remove elements from the middle or need queue/deque behavior.",
-    "topic": "java",
-    "subtopic": "collections",
+    "topic": "data_structures",
+    "subtopic": "arraylist_linkedlist_use_one",
     "difficulty": "easy"
   },
   {
     "id": "java-002",
     "question": "Explain the principles of encapsulation, inheritance, and polymorphism in Java. Give a practical example of polymorphism.",
-    "answer": "Encapsulation bundles data and behavior into a single unit and restricts direct access using access modifiers. Inheritance allows a class to extend another class, reusing code and establishing an is-a relationship. Polymorphism allows objects of different types to be treated through a common interface — e.g., a List reference can point to ArrayList or LinkedList, and calling .add() behaves differently based on the actual implementation at runtime.",
-    "topic": "java",
-    "subtopic": "oop",
+    "answer": "Encapsulation bundles data and behavior into a single unit and restricts direct access using access modifiers. Inheritance allows a class to extend another class, reusing code and establishing an is-a relationship. Polymorphism allows objects of different types to be treated through a common interface \u2014 e.g., a List reference can point to ArrayList or LinkedList, and calling .add() behaves differently based on the actual implementation at runtime.",
+    "topic": "object_oriented_design",
+    "subtopic": "principles_encapsulation_inheritance_polymorphism",
     "difficulty": "easy"
   },
   {
     "id": "java-003",
     "question": "What is the difference between `==` and `.equals()` in Java? Why is it important to override `hashCode()` when you override `equals()`?",
-    "answer": "`==` compares object references (memory addresses), while `.equals()` compares logical equality based on content. If you override `equals()` without overriding `hashCode()`, objects that are equal by `equals()` may have different hash codes, breaking HashMap/HashSet behavior — equal objects must have equal hash codes. The contract is: if a.equals(b), then a.hashCode() == b.hashCode().",
-    "topic": "java",
-    "subtopic": "basics",
+    "answer": "`==` compares object references (memory addresses), while `.equals()` compares logical equality based on content. If you override `equals()` without overriding `hashCode()`, objects that are equal by `equals()` may have different hash codes, breaking HashMap/HashSet behavior \u2014 equal objects must have equal hash codes. The contract is: if a.equals(b), then a.hashCode() == b.hashCode().",
+    "topic": "language_basics",
+    "subtopic": "java_it_important_override",
     "difficulty": "easy"
   },
   {
     "id": "java-004",
     "question": "What are Java Streams? Explain the difference between intermediate and terminal operations with examples.",
-    "answer": "Streams are a functional way to process collections of data. Intermediate operations (filter, map, sorted) return a new Stream and are lazy — they don't execute until a terminal operation is called. Terminal operations (collect, forEach, reduce, count) produce a result and trigger the pipeline execution. Example: `list.stream().filter(x -> x > 5).map(String::valueOf).collect(toList())` — filter and map are intermediate, collect is terminal.",
-    "topic": "java",
-    "subtopic": "streams",
+    "answer": "Streams are a functional way to process collections of data. Intermediate operations (filter, map, sorted) return a new Stream and are lazy \u2014 they don't execute until a terminal operation is called. Terminal operations (collect, forEach, reduce, count) produce a result and trigger the pipeline execution. Example: `list.stream().filter(x -> x > 5).map(String::valueOf).collect(toList())` \u2014 filter and map are intermediate, collect is terminal.",
+    "topic": "functional_programming",
+    "subtopic": "are_java_streams_intermediate",
     "difficulty": "medium"
   },
   {
     "id": "java-005",
     "question": "What is the difference between `Checked` and `Unchecked` exceptions? Give examples of each and explain when you would use them.",
-    "answer": "Checked exceptions (IOException, SQLException) are verified at compile-time — the caller must handle or declare them. They represent recoverable conditions. Unchecked exceptions (RuntimeException, NullPointerException, IllegalArgumentException) are not checked at compile-time and usually represent programming errors. Use checked exceptions for recoverable scenarios (file not found, network timeout) and unchecked for bugs that shouldn't be recovered from (invalid arguments, null references).",
-    "topic": "java",
-    "subtopic": "exceptions",
+    "answer": "Checked exceptions (IOException, SQLException) are verified at compile-time \u2014 the caller must handle or declare them. They represent recoverable conditions. Unchecked exceptions (RuntimeException, NullPointerException, IllegalArgumentException) are not checked at compile-time and usually represent programming errors. Use checked exceptions for recoverable scenarios (file not found, network timeout) and unchecked for bugs that shouldn't be recovered from (invalid arguments, null references).",
+    "topic": "error_handling",
+    "subtopic": "exceptions_give_examples_each",
     "difficulty": "easy"
   },
   {
     "id": "java-006",
     "question": "Explain how `HashMap` works internally in Java. How does it handle collisions?",
     "answer": "HashMap stores entries in an array of buckets (Node[]). It computes the hash of the key using `hashCode()`, then uses `(n-1) & hash` to find the bucket index. When two keys have the same hash (collision), they're stored as a linked list in the same bucket. Since Java 8, if a bucket grows beyond a threshold (TREEIFY_THRESHOLD=8), it converts to a balanced tree (red-black tree) for O(log n) lookups instead of O(n).",
-    "topic": "java",
-    "subtopic": "collections",
+    "topic": "data_structures",
+    "subtopic": "works_internally_java_it",
     "difficulty": "medium"
   },
   {
     "id": "java-007",
     "question": "What is the `volatile` keyword in Java? How does it differ from `synchronized`?",
-    "answer": "`volatile` ensures visibility — reads/writes go directly to main memory, so all threads see the latest value. It does NOT provide atomicity for compound operations. `synchronized` provides both visibility and atomicity (mutual exclusion) — only one thread can execute a synchronized block at a time. Use `volatile` for simple flags (e.g., `volatile boolean running`), and `synchronized` for compound state changes.",
-    "topic": "java",
-    "subtopic": "concurrency",
+    "answer": "`volatile` ensures visibility \u2014 reads/writes go directly to main memory, so all threads see the latest value. It does NOT provide atomicity for compound operations. `synchronized` provides both visibility and atomicity (mutual exclusion) \u2014 only one thread can execute a synchronized block at a time. Use `volatile` for simple flags (e.g., `volatile boolean running`), and `synchronized` for compound state changes.",
+    "topic": "concurrency",
+    "subtopic": "keyword_java_it_differ",
     "difficulty": "medium"
   },
   {
     "id": "java-008",
     "question": "What is the difference between `CompletableFuture` and regular `Future`? Show how you would chain two async operations using `CompletableFuture`.",
-    "answer": "`Future` is blocking — you must call `.get()` which blocks the thread. `CompletableFuture` is non-blocking and supports chaining, composition, and exception handling. Example: `CompletableFuture.supplyAsync(() -> fetchUser(id)).thenApply(user -> user.getName()).thenAccept(name -> System.out.println(name))`. You can also combine: `thenCombine`, `thenAcceptBoth`, and handle errors with `exceptionally` or `handle`.",
-    "topic": "java",
-    "subtopic": "concurrency",
+    "answer": "`Future` is blocking \u2014 you must call `.get()` which blocks the thread. `CompletableFuture` is non-blocking and supports chaining, composition, and exception handling. Example: `CompletableFuture.supplyAsync(() -> fetchUser(id)).thenApply(user -> user.getName()).thenAccept(name -> System.out.println(name))`. You can also combine: `thenCombine`, `thenAcceptBoth`, and handle errors with `exceptionally` or `handle`.",
+    "topic": "concurrency",
+    "subtopic": "regular_show_chain_two",
     "difficulty": "hard"
   },
   {
     "id": "java-009",
     "question": "What design patterns have you used in practice? Explain the Strategy pattern and give a Java example.",
-    "answer": "Strategy defines a family of algorithms and makes them interchangeable at runtime. In Java, `Comparator` is a Strategy pattern — you can pass different comparators to `Collections.sort()` to change sorting behavior without modifying the sorting algorithm itself. Other examples: Spring's `TaskExecutor` abstraction, or implementing payment processing with multiple strategies (CreditCard, PayPal, Crypto) behind a common `PaymentStrategy` interface.",
-    "topic": "java",
-    "subtopic": "design_patterns",
+    "answer": "Strategy defines a family of algorithms and makes them interchangeable at runtime. In Java, `Comparator` is a Strategy pattern \u2014 you can pass different comparators to `Collections.sort()` to change sorting behavior without modifying the sorting algorithm itself. Other examples: Spring's `TaskExecutor` abstraction, or implementing payment processing with multiple strategies (CreditCard, PayPal, Crypto) behind a common `PaymentStrategy` interface.",
+    "topic": "software_design",
+    "subtopic": "design_patterns_have_used",
     "difficulty": "medium"
   },
   {
     "id": "java-010",
     "question": "What is the difference between `String`, `StringBuilder`, and `StringBuffer`? Why is `String` immutable?",
-    "answer": "`String` is immutable — once created, its content cannot change. Operations like `concat()` create a new String. `StringBuilder` is mutable and not thread-safe, making it faster for string manipulation. `StringBuffer` is mutable and thread-safe (synchronized methods). String immutability enables string pooling, caching hashCode, thread safety, and security (e.g., class names, file paths can't be tampered with after creation).",
-    "topic": "java",
-    "subtopic": "basics",
+    "answer": "`String` is immutable \u2014 once created, its content cannot change. Operations like `concat()` create a new String. `StringBuilder` is mutable and not thread-safe, making it faster for string manipulation. `StringBuffer` is mutable and thread-safe (synchronized methods). String immutability enables string pooling, caching hashCode, thread safety, and security (e.g., class names, file paths can't be tampered with after creation).",
+    "topic": "language_basics",
+    "subtopic": "immutable",
     "difficulty": "easy"
   },
   {
     "id": "java-011",
     "question": "What is a Java `Record` (introduced in Java 14)? How does it differ from a regular class, and when would you use it?",
     "answer": "A Record is a concise way to create immutable data carriers. `record Point(int x, int y) {}` automatically generates: private final fields, public constructors, `equals()`, `hashCode()`, `toString()`, and accessor methods (`x()`, `y()`). Records cannot extend other classes and cannot have additional instance fields. Use them for DTOs, API responses, value objects, and any class whose primary purpose is to carry data.",
-    "topic": "java",
-    "subtopic": "modern_java",
+    "topic": "modern_java",
+    "subtopic": "java_introduced_it_differ",
     "difficulty": "medium"
   },
   {
     "id": "java-012",
     "question": "Explain the `try-with-resources` statement. What interface must a class implement to use it? Give an example.",
-    "answer": "`try-with-resources` automatically closes resources declared in the try header. The class must implement `AutoCloseable` (or `Closeable`). Example: `try (BufferedReader br = new BufferedReader(new FileReader(\"file.txt\"))) { return br.readLine(); }` — `br` is closed automatically, even if an exception is thrown. Multiple resources can be declared, and they close in reverse order. This prevents resource leaks and eliminates boilerplate finally blocks.",
-    "topic": "java",
-    "subtopic": "modern_java",
+    "answer": "`try-with-resources` automatically closes resources declared in the try header. The class must implement `AutoCloseable` (or `Closeable`). Example: `try (BufferedReader br = new BufferedReader(new FileReader(\"file.txt\"))) { return br.readLine(); }` \u2014 `br` is closed automatically, even if an exception is thrown. Multiple resources can be declared, and they close in reverse order. This prevents resource leaks and eliminates boilerplate finally blocks.",
+    "topic": "modern_java",
+    "subtopic": "statement_interface_must_class",
     "difficulty": "easy"
   },
   {
     "id": "java-013",
     "question": "What happens during class loading in the JVM? Explain loading, linking, and initialization phases.",
     "answer": "Class loading has three major phases: loading (bytecode is read and `Class` object is created), linking (verification, preparation, and symbolic reference resolution), and initialization (static fields and static blocks are executed). Class loaders follow parent delegation by default, preventing core class shadowing. Understanding this helps debug `ClassNotFoundException`, `NoClassDefFoundError`, and classpath conflicts.",
-    "topic": "java",
-    "subtopic": "jvm",
+    "topic": "jvm_internals",
+    "subtopic": "happens_during_class_loading",
     "difficulty": "medium"
   },
   {
     "id": "java-014",
     "question": "What is the Java Memory Model? Explain visibility, ordering, and atomicity with a real example.",
     "answer": "The Java Memory Model defines how threads interact through memory. Visibility means one thread can observe another thread's writes, ordering is controlled by happens-before rules, and atomicity means indivisible operations. For example, `count++` is not atomic, so it can race across threads. `volatile` fixes visibility and ordering for single variable reads/writes, while `synchronized` or atomic classes handle compound operations safely.",
-    "topic": "java",
-    "subtopic": "concurrency",
+    "topic": "concurrency",
+    "subtopic": "java_memory_model_visibility",
     "difficulty": "hard"
   },
   {
     "id": "java-015",
     "question": "How does `ThreadPoolExecutor` work? Which configuration mistakes most often cause production issues?",
     "answer": "`ThreadPoolExecutor` manages a fixed or elastic pool with a work queue and rejection policy. Key parameters are core pool size, max pool size, keep-alive time, queue type, and rejected execution handler. Common issues are unbounded queues causing latency spikes and OOM, too-small pools for blocking tasks, and ignoring rejection policies. In production, tune pool sizes per workload type and expose metrics for queue depth, active threads, and rejections.",
-    "topic": "java",
-    "subtopic": "concurrency",
+    "topic": "concurrency",
+    "subtopic": "work_which_configuration_mistakes",
     "difficulty": "hard"
   },
   {
     "id": "java-016",
     "question": "What are the differences between `HashMap`, `ConcurrentHashMap`, and `Collections.synchronizedMap`?",
     "answer": "`HashMap` is not thread-safe. `Collections.synchronizedMap` wraps a map with a single monitor lock, which is simple but limits concurrency and requires external synchronization during iteration. `ConcurrentHashMap` is designed for high concurrency using finer-grained synchronization and non-blocking reads in many paths. It provides better throughput under contention and supports atomic methods like `computeIfAbsent`.",
-    "topic": "java",
-    "subtopic": "collections",
+    "topic": "data_structures",
+    "subtopic": "are_differences",
     "difficulty": "medium"
   },
   {
     "id": "java-017",
     "question": "What are Java generics and type erasure? Why can't you create `new T()` or `List<String>[]`?",
     "answer": "Generics provide compile-time type safety but are implemented through type erasure in Java. At runtime, most generic type information is removed, so `List<String>` and `List<Integer>` share the same raw runtime type. Because of erasure, `new T()` is impossible without a type token/class reference, and arrays of parameterized types like `List<String>[]` are disallowed because arrays are reified and covariant, which could break type safety.",
-    "topic": "java",
-    "subtopic": "generics",
+    "topic": "type_system",
+    "subtopic": "are_java_generics_type",
     "difficulty": "medium"
   },
   {
     "id": "java-018",
     "question": "How do you diagnose and resolve memory leaks in Java applications?",
     "answer": "Start with symptoms (heap growth, frequent GC pauses, OOM). Capture heap dumps (`jmap`, JVM options) and analyze retained objects using tools like Eclipse MAT or VisualVM. Common causes are static caches without eviction, listener registries, thread-local misuse, and unclosed resources. Fix by limiting cache size/TTL, removing stale references, and enforcing lifecycle cleanup. Then verify with load testing and GC/log metrics.",
-    "topic": "java",
-    "subtopic": "jvm",
+    "topic": "jvm_internals",
+    "subtopic": "diagnose_resolve_memory_leaks",
     "difficulty": "hard"
   },
   {
     "id": "java-019",
     "question": "Explain `Optional` best practices. When is it useful and when should it be avoided?",
     "answer": "`Optional` is useful as a return type to model absence explicitly and avoid null checks. Prefer methods like `map`, `flatMap`, `orElseGet`, and `orElseThrow` instead of `isPresent` + `get`. Avoid using `Optional` for entity fields, method parameters, and serialization DTO fields because it adds overhead and tooling friction. Treat it as an API return contract, not a universal replacement for null.",
-    "topic": "java",
-    "subtopic": "modern_java",
+    "topic": "modern_java",
+    "subtopic": "best_practices_it_useful",
     "difficulty": "medium"
   },
   {
     "id": "java-020",
     "question": "In a high-throughput service, when would you choose virtual threads over platform threads?",
     "answer": "Virtual threads are ideal for request-per-thread designs dominated by blocking I/O, because they greatly reduce thread management overhead and improve scalability. They are not a silver bullet for CPU-bound workloads, where thread count still maps to core limits. When adopting them, verify library compatibility, avoid accidental pinning (e.g., long synchronized blocks/native calls), and measure latency, throughput, and resource usage under realistic load.",
-    "topic": "java",
-    "subtopic": "modern_java",
+    "topic": "modern_java",
+    "subtopic": "high_throughput_service_choose",
     "difficulty": "hard"
   }
 ]

@@ -2,161 +2,161 @@
   {
     "id": "postgres-001",
     "question": "What is the difference between `INNER JOIN`, `LEFT JOIN`, and `FULL OUTER JOIN`? Give a practical example of each.",
-    "answer": "`INNER JOIN` returns only rows where both tables have matching keys. `LEFT JOIN` returns all rows from the left table plus matching rows from the right (NULL if no match). `FULL OUTER JOIN` returns all rows from both tables, with NULLs where no match exists on either side. Example: users INNER JOIN orders on user_id — only users with orders. LEFT JOIN — all users, even without orders. FULL OUTER JOIN — all users and all orders, matched where possible.",
-    "topic": "postgresql",
-    "subtopic": "joins",
+    "answer": "`INNER JOIN` returns only rows where both tables have matching keys. `LEFT JOIN` returns all rows from the left table plus matching rows from the right (NULL if no match). `FULL OUTER JOIN` returns all rows from both tables, with NULLs where no match exists on either side. Example: users INNER JOIN orders on user_id \u2014 only users with orders. LEFT JOIN \u2014 all users, even without orders. FULL OUTER JOIN \u2014 all users and all orders, matched where possible.",
+    "topic": "querying",
+    "subtopic": "give_practical_example_each",
     "difficulty": "easy"
   },
   {
     "id": "postgres-002",
     "question": "What are database indexes? How does a B-tree index work, and when would you NOT use an index?",
-    "answer": "Indexes are data structures that speed up data retrieval. PostgreSQL's default B-tree index provides O(log n) lookups for equality and range queries. It works by maintaining a balanced tree of sorted keys. You should NOT use an index when: the table is very small (sequential scan is faster), the column has low cardinality (e.g., boolean — too many rows match), or the column is frequently updated (index adds write overhead). Indexes also consume disk space.",
-    "topic": "postgresql",
-    "subtopic": "indexes",
+    "answer": "Indexes are data structures that speed up data retrieval. PostgreSQL's default B-tree index provides O(log n) lookups for equality and range queries. It works by maintaining a balanced tree of sorted keys. You should NOT use an index when: the table is very small (sequential scan is faster), the column has low cardinality (e.g., boolean \u2014 too many rows match), or the column is frequently updated (index adds write overhead). Indexes also consume disk space.",
+    "topic": "indexing",
+    "subtopic": "are_database_indexes_b",
     "difficulty": "medium"
   },
   {
     "id": "postgres-003",
     "question": "What is a database transaction? Explain the ACID properties.",
-    "answer": "A transaction is a unit of work that must succeed or fail as a whole. ACID: Atomicity — all operations in a transaction complete or none do (rollback). Consistency — the database moves from one valid state to another, maintaining constraints. Isolation — concurrent transactions don't interfere (controlled by isolation levels). Durability — once committed, changes persist even after a crash (written to WAL — Write-Ahead Log in PostgreSQL).",
-    "topic": "postgresql",
-    "subtopic": "transactions",
+    "answer": "A transaction is a unit of work that must succeed or fail as a whole. ACID: Atomicity \u2014 all operations in a transaction complete or none do (rollback). Consistency \u2014 the database moves from one valid state to another, maintaining constraints. Isolation \u2014 concurrent transactions don't interfere (controlled by isolation levels). Durability \u2014 once committed, changes persist even after a crash (written to WAL \u2014 Write-Ahead Log in PostgreSQL).",
+    "topic": "transactions_and_locking",
+    "subtopic": "database_transaction_acid_properties",
     "difficulty": "easy"
   },
   {
     "id": "postgres-004",
     "question": "What are the transaction isolation levels in PostgreSQL? What is the default, and what problem does it prevent?",
     "answer": "PostgreSQL supports: Read Committed (default), Repeatable Read, and Serializable. Read Committed prevents dirty reads but allows non-repeatable reads and phantom reads. Repeatable Read prevents dirty reads and non-repeatable reads (but may get serialization failures). Serializable provides full isolation but may require retries. Note: PostgreSQL implements Repeatable Read using MVCC snapshots, so it doesn't suffer from non-repeatable reads like some other databases.",
-    "topic": "postgresql",
-    "subtopic": "transactions",
+    "topic": "transactions_and_locking",
+    "subtopic": "are_transaction_isolation_levels",
     "difficulty": "hard"
   },
   {
     "id": "postgres-005",
     "question": "What is a CTE (Common Table Expression)? Write a query using a CTE to find the top 3 departments by average salary.",
     "answer": "CTEs (WITH clauses) create named temporary result sets. Example: `WITH dept_avg AS (SELECT department_id, AVG(salary) as avg_salary FROM employees GROUP BY department_id) SELECT department_id, avg_salary FROM dept_avg ORDER BY avg_salary DESC LIMIT 3;`. CTEs improve readability and can be recursive (for hierarchical data like org charts). Since PostgreSQL 12, CTEs are inlined by default if referenced once (optimization).",
-    "topic": "postgresql",
-    "subtopic": "queries",
+    "topic": "querying",
+    "subtopic": "cte_common_table_expression",
     "difficulty": "medium"
   },
   {
     "id": "postgres-006",
     "question": "What is the N+1 query problem? How does it relate to JPA/Hibernate, and how would you solve it?",
     "answer": "N+1 occurs when you fetch 1 parent query, then N additional queries for each child entity (e.g., load 100 users, then fire 100 queries to load each user's orders). In JPA, this happens with lazy-loaded associations accessed in a loop. Solutions: JOIN FETCH in JPQL (`SELECT u FROM User u JOIN FETCH u.orders`), `@EntityGraph` to specify eager loading, batch fetching with `@BatchSize`, or use a DTO projection with a single SQL query.",
-    "topic": "postgresql",
-    "subtopic": "performance",
+    "topic": "performance_tuning",
+    "subtopic": "n_query_problem_it",
     "difficulty": "medium"
   },
   {
     "id": "postgres-007",
     "question": "What is the difference between `DELETE` and `TRUNCATE` in PostgreSQL?",
     "answer": "`DELETE` removes rows one by one, fires DELETE triggers, is transactional (can be rolled back), and supports WHERE clauses. `TRUNCATE` removes all rows quickly by deallocating data pages, cannot use WHERE, and fires ON TRUNCATE triggers. In PostgreSQL, `TRUNCATE` is transactional and by default uses `CONTINUE IDENTITY`; sequences are reset only with `RESTART IDENTITY`.",
-    "topic": "postgresql",
-    "subtopic": "basics",
+    "topic": "sql_fundamentals",
+    "subtopic": "postgresql",
     "difficulty": "easy"
   },
   {
     "id": "postgres-008",
     "question": "What is MVCC in PostgreSQL? How does it enable concurrent reads and writes?",
-    "answer": "MVCC (Multi-Version Concurrency Control) maintains multiple versions of a row. When a row is updated, PostgreSQL creates a new version rather than overwriting the old one. Readers see a snapshot of the data as it existed at their transaction start — they never block writers, and writers never block readers. Old row versions are cleaned up by VACUUM. This eliminates the need for read locks and significantly improves concurrency.",
-    "topic": "postgresql",
-    "subtopic": "architecture",
+    "answer": "MVCC (Multi-Version Concurrency Control) maintains multiple versions of a row. When a row is updated, PostgreSQL creates a new version rather than overwriting the old one. Readers see a snapshot of the data as it existed at their transaction start \u2014 they never block writers, and writers never block readers. Old row versions are cleaned up by VACUUM. This eliminates the need for read locks and significantly improves concurrency.",
+    "topic": "storage_and_architecture",
+    "subtopic": "mvcc_postgresql_it_enable",
     "difficulty": "hard"
   },
   {
     "id": "postgres-009",
     "question": "What is a window function in SQL? Explain the difference between `ROW_NUMBER()`, `RANK()`, and `DENSE_RANK()`.",
     "answer": "Window functions perform calculations across related rows without collapsing them (unlike GROUP BY). `ROW_NUMBER()` assigns a unique sequential number to each row. `RANK()` assigns the same rank to tied rows but skips subsequent ranks (1,2,2,4). `DENSE_RANK()` assigns the same rank to tied rows without gaps (1,2,2,3). Example: `SELECT name, salary, RANK() OVER (ORDER BY salary DESC) as rank FROM employees`.",
-    "topic": "postgresql",
-    "subtopic": "queries",
+    "topic": "querying",
+    "subtopic": "window_function_sql",
     "difficulty": "medium"
   },
   {
     "id": "postgres-010",
     "question": "How would you optimize a slow query in PostgreSQL? Walk through your debugging process.",
-    "answer": "1) Run `EXPLAIN ANALYZE <query>` to see the execution plan and actual times. 2) Look for sequential scans on large tables — consider adding indexes. 3) Check for nested loops with high row counts — may need a different join strategy. 4) Review WHERE clause columns for missing indexes. 5) Check if statistics are up-to-date (run ANALYZE). 6) Consider partial indexes, covering indexes, or query restructuring with CTEs/subqueries. 7) Monitor with `pg_stat_statements` to identify top slow queries.",
-    "topic": "postgresql",
-    "subtopic": "performance",
+    "answer": "1) Run `EXPLAIN ANALYZE <query>` to see the execution plan and actual times. 2) Look for sequential scans on large tables \u2014 consider adding indexes. 3) Check for nested loops with high row counts \u2014 may need a different join strategy. 4) Review WHERE clause columns for missing indexes. 5) Check if statistics are up-to-date (run ANALYZE). 6) Consider partial indexes, covering indexes, or query restructuring with CTEs/subqueries. 7) Monitor with `pg_stat_statements` to identify top slow queries.",
+    "topic": "performance_tuning",
+    "subtopic": "optimize_slow_query_postgresql",
     "difficulty": "hard"
   },
   {
     "id": "postgres-011",
     "question": "What are database schema migrations? Why is it important to version-control database changes, and what tools have you used?",
     "answer": "Schema migrations version-control database changes alongside application code. Instead of manually running ALTER TABLE on production, you write migration scripts (e.g., V1__create_users.sql, V2__add_email_column.sql) and a migration tool tracks which have been applied in a history table. Benefits: reproducible deployments, team coordination, rollback capability, and CI/CD integration. Tools: Flyway (SQL-based), Liquibase (XML/YAML/SQL), Alembic (Python), Knex.js/Prisma (Node.js), Django migrations (Python). The concept is universal regardless of the language.",
-    "topic": "postgresql",
-    "subtopic": "migrations",
+    "topic": "schema_management",
+    "subtopic": "are_database_schema_migrations",
     "difficulty": "easy"
   },
   {
     "id": "postgres-012",
     "question": "What is the difference between `CHAR`, `VARCHAR`, and `TEXT` in PostgreSQL? When would you use each?",
-    "answer": "`CHAR(n)` is fixed-length, padded with spaces — rarely used, mostly for codes of exact length. `VARCHAR(n)` is variable-length with a max limit — good for constrained fields like email, username. `TEXT` has no length limit (effectively unlimited) — ideal for descriptions, comments, large text. In PostgreSQL, `VARCHAR` and `TEXT` have identical performance internally — the only difference is the length check on `VARCHAR(n)`. Many teams use `TEXT` by default.",
-    "topic": "postgresql",
-    "subtopic": "basics",
+    "answer": "`CHAR(n)` is fixed-length, padded with spaces \u2014 rarely used, mostly for codes of exact length. `VARCHAR(n)` is variable-length with a max limit \u2014 good for constrained fields like email, username. `TEXT` has no length limit (effectively unlimited) \u2014 ideal for descriptions, comments, large text. In PostgreSQL, `VARCHAR` and `TEXT` have identical performance internally \u2014 the only difference is the length check on `VARCHAR(n)`. Many teams use `TEXT` by default.",
+    "topic": "sql_fundamentals",
+    "subtopic": "postgresql_use_each",
     "difficulty": "easy"
   },
   {
     "id": "postgres-013",
     "question": "What is the difference between `EXPLAIN` and `EXPLAIN ANALYZE`? Why can `EXPLAIN ANALYZE` be dangerous in production?",
     "answer": "`EXPLAIN` shows the planned execution strategy without running the query. `EXPLAIN ANALYZE` executes the query and reports actual runtime statistics, including row counts and timing, which are essential for diagnosing bad estimates. It can be dangerous in production because it really runs the statement; for expensive updates/deletes it may cause heavy load or data changes unless wrapped safely.",
-    "topic": "postgresql",
-    "subtopic": "performance",
+    "topic": "performance_tuning",
+    "subtopic": "can_be_dangerous_production",
     "difficulty": "medium"
   },
   {
     "id": "postgres-014",
     "question": "When would you use a partial index in PostgreSQL? Give an example.",
     "answer": "Use a partial index when queries repeatedly target a subset of rows, reducing index size and write overhead. Example: for active users only, `CREATE INDEX idx_users_active_email ON users(email) WHERE deleted_at IS NULL;`. This speeds matching queries while avoiding indexing inactive/deleted rows that are rarely queried.",
-    "topic": "postgresql",
-    "subtopic": "indexes",
+    "topic": "indexing",
+    "subtopic": "use_partial_index_postgresql",
     "difficulty": "medium"
   },
   {
     "id": "postgres-015",
     "question": "What is `VACUUM` in PostgreSQL, and what happens if autovacuum is misconfigured?",
     "answer": "PostgreSQL uses MVCC, leaving dead tuples after updates/deletes. `VACUUM` reclaims space for reuse and updates visibility maps; autovacuum performs this automatically. If misconfigured or lagging, dead tuples accumulate, table/index bloat increases, query performance degrades, and transaction ID wraparound risk appears. Monitoring autovacuum activity is critical in write-heavy systems.",
-    "topic": "postgresql",
-    "subtopic": "maintenance",
+    "topic": "maintenance",
+    "subtopic": "postgresql_happens_if_autovacuum",
     "difficulty": "hard"
   },
   {
     "id": "postgres-016",
     "question": "How do row-level locks (`FOR UPDATE`, `FOR SHARE`) work, and when are they needed?",
     "answer": "Row-level locks protect selected rows from conflicting concurrent updates. `SELECT ... FOR UPDATE` locks rows so other transactions cannot update/delete them until commit/rollback; `FOR SHARE` is weaker and allows some read-sharing patterns. Use row locks for critical sections like inventory reservation, preventing lost updates when read-check-write must be atomic.",
-    "topic": "postgresql",
-    "subtopic": "transactions",
+    "topic": "transactions_and_locking",
+    "subtopic": "row_level_locks_work",
     "difficulty": "hard"
   },
   {
     "id": "postgres-017",
     "question": "How would you model and index JSONB data in PostgreSQL for fast filtering?",
     "answer": "Store semi-structured payload in `jsonb` and use GIN indexes for containment/path queries. Example: `CREATE INDEX idx_events_payload_gin ON events USING gin (payload jsonb_path_ops);`. Keep frequently filtered fields as regular typed columns when possible for simpler plans and constraints. JSONB is powerful but should complement, not replace, relational modeling.",
-    "topic": "postgresql",
-    "subtopic": "jsonb",
+    "topic": "semi_structured_data",
+    "subtopic": "model_index_jsonb_data",
     "difficulty": "medium"
   },
   {
     "id": "postgres-018",
     "question": "What is table partitioning in PostgreSQL, and what problems does it solve?",
     "answer": "Partitioning splits a large logical table into smaller physical partitions by range/list/hash key. It helps manage very large datasets by improving maintenance (vacuum, archival, retention) and enabling partition pruning so queries touch fewer partitions. It is useful for time-series or multi-tenant workloads but requires careful key choice and index strategy.",
-    "topic": "postgresql",
-    "subtopic": "architecture",
+    "topic": "storage_and_architecture",
+    "subtopic": "table_partitioning_postgresql_problems",
     "difficulty": "hard"
   },
   {
     "id": "postgres-019",
     "question": "How do you detect and handle deadlocks in PostgreSQL?",
     "answer": "A deadlock occurs when transactions wait on each other in a cycle. PostgreSQL detects this and aborts one transaction with a deadlock error. Handle it by retrying safely in application code, keeping transactions short, and locking rows in consistent order across code paths. Use logs and `pg_stat_activity`/lock views to investigate recurring patterns.",
-    "topic": "postgresql",
-    "subtopic": "transactions",
+    "topic": "transactions_and_locking",
+    "subtopic": "detect_handle_deadlocks_postgresql",
     "difficulty": "hard"
   },
   {
     "id": "postgres-020",
     "question": "What are connection pooling strategies for PostgreSQL, and why is PgBouncer often used?",
     "answer": "PostgreSQL connections are relatively expensive and each consumes server resources. Pooling reuses connections to reduce overhead and stabilize throughput. Application-level pools (HikariCP) are common, while PgBouncer provides external pooling and can protect the database from connection storms across many services. Choose pooling mode carefully because transaction/session pooling affects features relying on session state.",
-    "topic": "postgresql",
-    "subtopic": "performance",
+    "topic": "performance_tuning",
+    "subtopic": "are_connection_pooling_strategies",
     "difficulty": "medium"
   }
 ]

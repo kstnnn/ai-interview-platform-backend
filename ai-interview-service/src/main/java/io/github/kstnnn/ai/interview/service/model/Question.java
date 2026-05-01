@@ -27,6 +27,9 @@ public class Question {
   @UuidGenerator(style = UuidGenerator.Style.VERSION_7)
   private UUID id;
 
+  @Column(nullable = false, unique = true)
+  private String externalId;
+
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "technology_id", nullable = false)
   private Technology technology;
@@ -51,6 +54,9 @@ public class Question {
 
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
+
+  @Column(name = "updated_at")
+  private Instant updatedAt;
 
   @PrePersist
   void onCreate() {
