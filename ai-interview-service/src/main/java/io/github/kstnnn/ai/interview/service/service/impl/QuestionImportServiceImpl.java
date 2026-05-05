@@ -16,11 +16,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chroma.vectorstore.ChromaApi;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
@@ -33,8 +35,15 @@ public class QuestionImportServiceImpl implements QuestionImportService {
   private final ObjectMapper objectMapper;
   private final TechnologyRepository technologyRepository;
   private final VectorStore vectorStore;
+  private final ChromaApi chromaApi;
 
   @Override
+  public void deleteCollection() {
+    chromaApi.deleteCollection("default_tenant", "default_database", "interview-questions");
+  }
+
+  @Override
+  @Transactional
   public void loadQuestionsIntoDb() {
     try {
       PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
@@ -66,6 +75,7 @@ public class QuestionImportServiceImpl implements QuestionImportService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public void loadQuestionsIntoVectorStore() {
     var questions = questionRepository.findAllWithTechnology();
 
@@ -144,9 +154,6 @@ public class QuestionImportServiceImpl implements QuestionImportService {
 
   private String resolveTechnologyKey(String filename) {
     var baseKey = filename.replace("-questions.json", "");
-    if ("postgres".equals(baseKey)) {
-      return "postgresql";
-    }
     return baseKey.replace('-', '_');
   }
 

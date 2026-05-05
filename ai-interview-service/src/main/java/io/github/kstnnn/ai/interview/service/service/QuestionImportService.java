@@ -5,4 +5,6 @@ public interface QuestionImportService {
   void loadQuestionsIntoDb();
 
   void loadQuestionsIntoVectorStore();
+
+  void deleteCollection();
 }

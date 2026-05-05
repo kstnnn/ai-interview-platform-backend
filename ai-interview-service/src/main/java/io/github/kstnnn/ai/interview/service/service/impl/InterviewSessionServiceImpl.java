@@ -1,52 +1,100 @@
 package io.github.kstnnn.ai.interview.service.service.impl;
 
+import io.github.kstnnn.ai.interview.service.model.Difficulty;
 import io.github.kstnnn.ai.interview.service.service.InterviewSessionService;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
+import org.springframework.ai.document.Document;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.filter.Filter.Expression;
+import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class InterviewSessionServiceImpl implements InterviewSessionService {
 
   private final ChatClient chatClient;
-
-  @Value("classpath:/prompts/follow-up-question-prompt.st")
-  private Resource followUpPrompt;
+  private final VectorStore vectorStore;
 
   @Override
-  public String generateFollowUpQuestion(
-      String primaryQuestion,
-      String expectedAnswer,
-      String candidateAnswer,
-      String knowledgeGaps,
-      String language) {
-    String template = readPromptTemplate();
-    String prompt =
-        template
-            .replace("{primary_question}", safe(primaryQuestion))
-            .replace("{expected_answer}", safe(expectedAnswer))
-            .replace("{candidate_answer}", safe(candidateAnswer))
-            .replace("{knowledge_gaps}", safe(knowledgeGaps))
-            .replace("{interview_language}", safe(language));
-
-    return chatClient.prompt().user(prompt).call().content();
+  public void startInterview(UUID userId, List<String> technologies) {
+    throw new UnsupportedOperationException("Unimplemented method 'startInterview'");
   }
 
-  private String readPromptTemplate() {
-    try {
-      return StreamUtils.copyToString(followUpPrompt.getInputStream(), StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      throw new IllegalStateException("Unable to load follow-up prompt template", e);
+  @Override
+  public List<String> getBaseQuestions(List<String> technologies) {
+    var normalizedTechs =
+        technologies == null
+            ? List.<String>of()
+            : technologies.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .filter(s -> !s.isBlank())
+                .distinct()
+                .toList();
+
+    if (normalizedTechs.isEmpty()) {
+      throw new IllegalArgumentException("technologies must not be empty");
     }
+
+    log.info("Base questions requested for technologies={}", normalizedTechs);
+
+    List<String> questions = new ArrayList<>();
+
+    for (String technology : normalizedTechs) {
+      questions.addAll(getQuestionsPerTechnology(technology));
+    }
+
+    return questions;
   }
 
-  private String safe(String value) {
-    return value == null ? "" : value;
+  private List<String> getQuestionsPerTechnology(String technology) {
+    List<String> questions = new ArrayList<>();
+    var filterExpressionBuilder = new FilterExpressionBuilder();
+
+    var searchRequest = SearchRequest.builder().similarityThreshold(0.7).topK(1);
+
+    for (var difficulty : Difficulty.values()) {
+      var expression =
+          filterExpressionBuilder
+              .and(
+                  filterExpressionBuilder.eq("technology", technology),
+                  filterExpressionBuilder.eq("difficulty", difficulty.toString()))
+              .build();
+
+      searchRequest.filterExpression(expression);
+
+      questions.addAll(
+          vectorStore.similaritySearch(searchRequest.build()).stream()
+              .peek(
+                  d ->
+                      log.info(
+                          "result: id={}, technology={}, difficulty={}",
+                          d.getMetadata().get("id"),
+                          d.getMetadata().get("technology"),
+                          d.getMetadata().get("difficulty")))
+              .map(Document::getText)
+              .toList());
+    }
+
+    return questions;
+  }
+
+  private Expression buildExpression(List<String> technologies, Difficulty difficulty) {
+    var fBuilder = new FilterExpressionBuilder();
+    var expression = fBuilder.eq("technology", technologies.get(0));
+    for (int i = 1; i < technologies.size(); i++) {
+      expression = fBuilder.or(expression, fBuilder.eq("technology", technologies.get(i)));
+    }
+    return fBuilder.and(expression, fBuilder.eq("difficulty", difficulty.toString())).build();
   }
 }

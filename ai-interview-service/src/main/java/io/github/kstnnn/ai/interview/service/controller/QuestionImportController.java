@@ -24,4 +24,10 @@ public class QuestionImportController {
     questionImportService.loadQuestionsIntoVectorStore();
     return ResponseEntity.ok().build();
   }
+
+  @PostMapping("/delete")
+  public ResponseEntity<Void> deleteCollection() {
+    questionImportService.deleteCollection();
+    return ResponseEntity.ok().build();
+  }
 }
