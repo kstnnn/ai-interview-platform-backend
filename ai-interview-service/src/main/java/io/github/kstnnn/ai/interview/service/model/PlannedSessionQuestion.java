@@ -1,39 +1,44 @@
 package io.github.kstnnn.ai.interview.service.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 
+@Table(name = "planned_session_questions")
 @Entity
-@Table(
-    name = "interview_session_technologies",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"session_id", "technology_id"}))
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class InterviewSessionTechnology {
+@Setter
+@Getter
+public class PlannedSessionQuestion {
+
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  @GeneratedValue
+  @UuidGenerator(style = UuidGenerator.Style.VERSION_7)
+  private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "session_id", nullable = false)
-  private InterviewSession session;
+  private InterviewSession interviewSession;
 
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "technology_id", nullable = false)
-  private Technology technology;
+  @OneToOne
+  @JoinColumn(name = "question_id", nullable = false)
+  private Question question;
+
+  @Column(name = "planned_status", nullable = false)
+  private PlannedStatus plannedStatus;
 }

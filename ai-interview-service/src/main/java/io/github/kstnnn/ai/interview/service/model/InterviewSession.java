@@ -9,6 +9,8 @@ import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,6 +21,8 @@ import org.hibernate.annotations.UuidGenerator;
 @Setter
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class InterviewSession {
   @Id
   @GeneratedValue
@@ -48,6 +52,9 @@ public class InterviewSession {
 
   @Column(name = "finished_reason")
   private InterviewFinishedReason finishedReason;
+
+  @Column(name = "interview_level")
+  private InterviewLevel interviewLevel;
 
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;

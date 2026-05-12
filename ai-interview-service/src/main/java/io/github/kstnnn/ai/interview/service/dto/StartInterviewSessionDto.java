@@ -1,13 +1,13 @@
 package io.github.kstnnn.ai.interview.service.dto;
 
-import java.math.BigDecimal;
+import io.github.kstnnn.ai.interview.service.model.InterviewLevel;
+import io.github.kstnnn.ai.interview.service.model.Technology;
+import java.util.List;
 import java.util.UUID;
 
 public record StartInterviewSessionDto(
-    UUID user_id, Integer minQuestions, Integer maxQuestions, BigDecimal targetConfidence) {
-  public StartInterviewSessionDto {
-    if (targetConfidence == null) {
-      targetConfidence = new BigDecimal("0.75");
-    }
-  }
-}
+    UUID userId,
+    Integer minQuestions,
+    Integer maxQuestions,
+    InterviewLevel interviewLevel,
+    List<Technology> technologies) {}

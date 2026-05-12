@@ -14,3 +14,12 @@ databaseChangeLog:
       - include:
               file: changesets/005-add-new-columns-for-questions-table.sql
               relativeToChangelogFile: true
+      - include:
+              file: changesets/006-add-interview-level-column-for-interview-sessions-table.sql
+              relativeToChangelogFile: true
+      - include:
+              file: changesets/007-create-planned-session-questions-table.sql
+              relativeToChangelogFile: true
+      - include:
+              file: changesets/008-add-foreign-constraints-planned-session-questions-table.sql
+              relativeToChangelogFile: true
