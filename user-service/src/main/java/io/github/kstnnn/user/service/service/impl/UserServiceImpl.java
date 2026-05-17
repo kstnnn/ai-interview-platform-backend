@@ -2,10 +2,10 @@ package io.github.kstnnn.user.service.service.impl;
 
 import io.github.kstnnn.user.service.dto.UserCreateRequestDto;
 import io.github.kstnnn.user.service.dto.UserResponseDto;
-import io.github.kstnnn.user.service.model.UserStatus;
 import io.github.kstnnn.user.service.exception.UserAlreadyDeletedException;
 import io.github.kstnnn.user.service.exception.UserAlreadyExistsException;
 import io.github.kstnnn.user.service.exception.UserNotFoundException;
+import io.github.kstnnn.user.service.model.UserStatus;
 import io.github.kstnnn.user.service.repository.UserRepository;
 import io.github.kstnnn.user.service.service.UserService;
 import java.util.UUID;

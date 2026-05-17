@@ -1,6 +1,6 @@
 plugins {
 	java
-	id("org.springframework.boot") version "4.0.5"
+	id("org.springframework.boot") version "4.0.6"
 	id("io.spring.dependency-management") version "1.1.7"
 }
 
@@ -25,6 +25,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.ai:spring-ai-advisors-vector-store")
+	implementation("org.springframework.boot:spring-boot-starter-websocket")
 	// implementation("org.springframework.ai:spring-ai-starter-model-chat-memory-repository-redis")
 	implementation("org.springframework.ai:spring-ai-starter-model-transformers")
 	implementation("org.springframework.ai:spring-ai-starter-vector-store-chroma")
