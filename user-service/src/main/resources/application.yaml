@@ -38,20 +38,20 @@ spring:
     virtual:
       enabled: true
 
-management:
-  tracing:
-    sampling:
-      probability: 1.0
-  otlp:
-    metrics:
-      export:
-        url: ${METRICS_URL}
-  opentelemetry:
-    tracing:
-      export:
-        otlp:
-          endpoint: ${TRACES_URL}
-    logging:
-      export:
-        otlp:
-          endpoint: ${LOGS_URL}
+# management:
+#   tracing:
+#     sampling:
+#       probability: 1.0
+#   otlp:
+#     metrics:
+#       export:
+#         url: ${METRICS_URL}
+#   opentelemetry:
+#     tracing:
+#       export:
+#         otlp:
+#           endpoint: ${TRACES_URL}
+#     logging:
+#       export:
+#         otlp:
+#           endpoint: ${LOGS_URL}

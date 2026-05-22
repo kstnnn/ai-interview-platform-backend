@@ -1,8 +1,8 @@
 package io.github.kstnnn.user.service.dto;
 
-import io.github.kstnnn.user.service.entity.User;
-import io.github.kstnnn.user.service.enums.UserStatus;
-import io.github.kstnnn.user.service.enums.UserType;
+import io.github.kstnnn.user.service.model.User;
+import io.github.kstnnn.user.service.model.UserStatus;
+import io.github.kstnnn.user.service.model.UserType;
 import java.time.Instant;
 import java.util.UUID;
 

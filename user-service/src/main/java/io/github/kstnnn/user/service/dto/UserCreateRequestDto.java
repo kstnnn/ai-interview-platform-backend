@@ -1,9 +1,9 @@
 package io.github.kstnnn.user.service.dto;
 
-import io.github.kstnnn.user.service.entity.User;
-import io.github.kstnnn.user.service.enums.UserRole;
-import io.github.kstnnn.user.service.enums.UserStatus;
-import io.github.kstnnn.user.service.enums.UserType;
+import io.github.kstnnn.user.service.model.User;
+import io.github.kstnnn.user.service.model.UserRole;
+import io.github.kstnnn.user.service.model.UserStatus;
+import io.github.kstnnn.user.service.model.UserType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;

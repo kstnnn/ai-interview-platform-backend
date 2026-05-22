@@ -1,7 +1,7 @@
 package io.github.kstnnn.user.service.repository;
 
 import io.github.kstnnn.user.service.dto.UserResponseDto;
-import io.github.kstnnn.user.service.entity.User;
+import io.github.kstnnn.user.service.model.User;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,6 +20,14 @@ public interface UserRepository extends JpaRepository<User, UUID> {
   Optional<User> findUserByProviderUserId(String id);
 
   boolean existsByEmail(String email);
+
+  @Query(
+      "SELECT new io.github.kstnnn.user.service.dto.UserResponseDto("
+          + "u.id, u.email, u.firstName, u.lastName, u.emailVerified, "
+          + "u.userType, u.userStatus, u.createdAt) "
+          + "FROM User u "
+          + "WHERE u.providerUserId = :providerUserId AND u.userStatus <> 'DELETED'")
+  Optional<UserResponseDto> findResponseDtoByProviderUserId(String providerUserId);
 
   boolean existsByProviderUserId(String providerUserId);
 }

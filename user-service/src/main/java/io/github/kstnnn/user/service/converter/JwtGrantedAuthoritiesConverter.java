@@ -2,12 +2,12 @@ package io.github.kstnnn.user.service.converter;
 
 import io.github.kstnnn.user.service.repository.UserRepository;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
@@ -22,12 +22,12 @@ public class JwtGrantedAuthoritiesConverter
   public Collection<GrantedAuthority> convert(Jwt jwt) {
     var providerUserId = jwt.getSubject();
 
-    var user =
-        userRepository
-            .findUserByProviderUserId(providerUserId)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    var userOpt = userRepository.findUserByProviderUserId(providerUserId);
+    if (userOpt.isEmpty()) {
+      return Collections.emptySet();
+    }
 
-    return user.getRoles().stream()
+    return userOpt.get().getRoles().stream()
         .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
         .collect(Collectors.toSet());
   }

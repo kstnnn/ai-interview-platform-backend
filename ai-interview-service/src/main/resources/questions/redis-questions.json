@@ -1,0 +1,82 @@
+[
+  {
+    "id": "redis-001",
+    "question": "What data structures does Redis provide and when would you use each?",
+    "answer": "Redis supports strings, hashes, lists, sets, sorted sets, streams, bitmaps, and more. Strings are great for cache entries/counters, hashes for object-like fields, lists for queues, sets for unique membership, sorted sets for ranking/leaderboards, and streams for event logs/consumer groups. Choosing the right structure improves performance and simplicity.",
+    "topic": "data_structures",
+    "subtopic": "data_structures_redis_provide",
+    "difficulty": "easy"
+  },
+  {
+    "id": "redis-002",
+    "question": "How do expiration and eviction policies work in Redis?",
+    "answer": "Expiration is key-level TTL set by the application. Eviction applies when memory limit is reached and chooses keys to remove based on policy (e.g., `allkeys-lru`, `volatile-ttl`, `noeviction`). Correct policy depends on workload; bad configuration can cause cache churn or write failures.",
+    "topic": "caching_strategies",
+    "subtopic": "expiration_eviction_policies_work",
+    "difficulty": "medium"
+  },
+  {
+    "id": "redis-003",
+    "question": "What is cache stampede and how would you prevent it?",
+    "answer": "Cache stampede happens when many requests miss/expire simultaneously and overload the origin service/database. Mitigations include jittered TTLs, request coalescing/single-flight locks, stale-while-revalidate, and proactive cache warming. The goal is smoothing load spikes around key expiration.",
+    "topic": "caching_strategies",
+    "subtopic": "cache_stampede_prevent_it",
+    "difficulty": "hard"
+  },
+  {
+    "id": "redis-004",
+    "question": "Explain Redis persistence modes (RDB, AOF) and trade-offs.",
+    "answer": "RDB snapshots save point-in-time dumps with lower write overhead but potential data loss between snapshots. AOF logs write operations for better durability and replay, at higher I/O cost. Many systems combine both for faster recovery plus stronger durability guarantees.",
+    "topic": "persistence",
+    "subtopic": "redis_persistence_modes_rdb",
+    "difficulty": "medium"
+  },
+  {
+    "id": "redis-005",
+    "question": "How would you implement distributed locking with Redis safely?",
+    "answer": "Use `SET lock_key value NX PX ttl` for atomic lock acquisition with TTL, and release via Lua script that checks owner value before delete. This prevents accidentally releasing someone else's lock. Keep lock scope short and understand failure cases; in high-criticality systems evaluate stronger coordination tools as needed.",
+    "topic": "distributed_coordination",
+    "subtopic": "implement_distributed_locking_redis",
+    "difficulty": "hard"
+  },
+  {
+    "id": "redis-006",
+    "question": "What is Redis Pub/Sub and when should you choose Streams instead?",
+    "answer": "Pub/Sub broadcasts transient messages to active subscribers and does not persist delivery for offline consumers. Redis Streams persist entries and support consumer groups, acknowledgements, and replay. Choose Pub/Sub for simple ephemeral notifications; choose Streams for reliable event processing.",
+    "topic": "messaging",
+    "subtopic": "redis_pub_sub_should",
+    "difficulty": "medium"
+  },
+  {
+    "id": "redis-007",
+    "question": "How does Redis replication and Sentinel-based failover work?",
+    "answer": "Redis replication asynchronously copies data from primary to replicas. Sentinel monitors instances and can promote a replica during primary failure, updating clients with new master info. Because replication is async, small data loss windows are possible during failover; design accordingly.",
+    "topic": "high_availability",
+    "subtopic": "redis_replication_sentinel_based",
+    "difficulty": "hard"
+  },
+  {
+    "id": "redis-008",
+    "question": "When should you use Redis Cluster and what limitations should you know?",
+    "answer": "Redis Cluster shards keys across hash slots for horizontal scaling and high availability. It is useful when data exceeds single-node memory/throughput. Constraints include multi-key operations requiring same hash slot (or hash tags) and added operational complexity compared to a single instance.",
+    "topic": "scalability",
+    "subtopic": "should_use_redis_cluster",
+    "difficulty": "hard"
+  },
+  {
+    "id": "redis-009",
+    "question": "How would you model a rate limiter in Redis?",
+    "answer": "Common approaches include fixed window (`INCR` + TTL), sliding window logs, or token bucket algorithms using Lua for atomicity. Key design points are fairness, burst behavior, per-tenant granularity, and low-latency checks. TTL cleanup and observability are important for long-term stability.",
+    "topic": "application_patterns",
+    "subtopic": "model_rate_limiter_redis",
+    "difficulty": "medium"
+  },
+  {
+    "id": "redis-010",
+    "question": "What metrics would you monitor for Redis in production?",
+    "answer": "Monitor memory usage/fragmentation, hit ratio, command latency, evictions, expirations, replication lag, blocked clients, and CPU/network saturation. Alert on sustained latency increases, eviction spikes, and replica health degradation. Metrics should be interpreted with workload context (traffic spikes, deploys, key churn).",
+    "topic": "observability",
+    "subtopic": "metrics_monitor_redis_production",
+    "difficulty": "medium"
+  }
+]

@@ -28,6 +28,11 @@ public class UserController {
     return ResponseEntity.ok(userService.getById(id));
   }
 
+  @GetMapping("/by-provider-id/{providerUserId}")
+  ResponseEntity<UserResponseDto> getUserByProviderId(@PathVariable String providerUserId) {
+    return ResponseEntity.ok(userService.getByProviderUserId(providerUserId));
+  }
+
   @PostMapping
   ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserCreateRequestDto dto) {
     return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(dto));

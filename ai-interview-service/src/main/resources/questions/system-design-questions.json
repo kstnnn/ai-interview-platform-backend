@@ -1,0 +1,82 @@
+[
+  {
+    "id": "sysdesign-001",
+    "question": "How would you design a URL shortener service from scratch?",
+    "answer": "Start with requirements (read/write ratio, custom aliases, expiration, analytics). Core components include API service, ID generation strategy, persistent store, cache, and redirect layer. Handle collision prevention, hot key caching, rate limiting, and abuse protection. Discuss scaling, observability, and failure modes.",
+    "topic": "service_design",
+    "subtopic": "design_url_shortener_service",
+    "difficulty": "medium"
+  },
+  {
+    "id": "sysdesign-002",
+    "question": "What is the CAP theorem and how does it influence real architecture decisions?",
+    "answer": "CAP states that under network partition, a distributed system can choose either consistency or availability, not both simultaneously. In practice, systems choose trade-offs per use case (e.g., CP for financial correctness, AP for high-availability feeds). Interviewers expect concrete examples, not only theorem definition.",
+    "topic": "distributed_systems",
+    "subtopic": "cap_theorem_it_influence",
+    "difficulty": "medium"
+  },
+  {
+    "id": "sysdesign-003",
+    "question": "How would you design an idempotent payment API?",
+    "answer": "Use idempotency keys, atomic persistence of request/result, and clear duplicate handling semantics. Protect against race conditions with unique constraints or transactional locking. Ensure retries are safe, and store response state so repeated calls return consistent results.",
+    "topic": "api_design",
+    "subtopic": "design_idempotent_payment_api",
+    "difficulty": "hard"
+  },
+  {
+    "id": "sysdesign-004",
+    "question": "When would you choose a monolith vs microservices for a new backend product?",
+    "answer": "A modular monolith is often better early: simpler deployment, transactions, and debugging. Microservices help when team/domain boundaries are clear and independent scaling/deployment is needed. Trade-offs include operational overhead, distributed consistency, and observability complexity.",
+    "topic": "architecture_tradeoffs",
+    "subtopic": "choose_monolith_vs_microservices",
+    "difficulty": "easy"
+  },
+  {
+    "id": "sysdesign-005",
+    "question": "How do you design for eventual consistency without confusing users?",
+    "answer": "Model explicit state transitions, provide user-facing status feedback, and implement reconciliation/retry workflows. Use outbox/inbox patterns, idempotent consumers, and compensating actions for failures. Communicate delays clearly in UX and APIs to reduce inconsistency surprises.",
+    "topic": "distributed_systems",
+    "subtopic": "design_eventual_consistency_without",
+    "difficulty": "hard"
+  },
+  {
+    "id": "sysdesign-006",
+    "question": "How would you scale a read-heavy service while keeping write correctness?",
+    "answer": "Use read replicas, caching, and denormalized read models while preserving a clear write authority path. Introduce cache invalidation strategy, eventual consistency windows, and backpressure protections. Monitor stale-read impact and promote consistency where business-critical.",
+    "topic": "scalability",
+    "subtopic": "scale_read_heavy_service",
+    "difficulty": "medium"
+  },
+  {
+    "id": "sysdesign-007",
+    "question": "What is backpressure and how do you apply it in distributed systems?",
+    "answer": "Backpressure prevents overload by slowing producers when consumers are saturated. Techniques include bounded queues, rate limits, circuit breakers, retry with jitter, and load shedding. Proper backpressure avoids cascading failures and improves graceful degradation.",
+    "topic": "reliability",
+    "subtopic": "backpressure_apply_it_distributed",
+    "difficulty": "hard"
+  },
+  {
+    "id": "sysdesign-008",
+    "question": "How do you approach database schema design for multi-tenant SaaS products?",
+    "answer": "Common models are shared schema with tenant_id, separate schemas, or separate databases. Choice depends on isolation, compliance, operational complexity, and scale. Enforce tenant isolation in queries/indexes, plan tenant-aware migrations, and monitor noisy-neighbor effects.",
+    "topic": "data_modeling",
+    "subtopic": "approach_database_schema_design",
+    "difficulty": "hard"
+  },
+  {
+    "id": "sysdesign-009",
+    "question": "How would you design observability for a microservice platform?",
+    "answer": "Define SLOs and instrument logs, metrics, and traces with consistent correlation IDs. Use structured logs, RED/USE metrics, and distributed tracing across service boundaries. Build alerting around user impact and error budgets, not only infrastructure signals.",
+    "topic": "observability",
+    "subtopic": "design_observability_microservice_platform",
+    "difficulty": "medium"
+  },
+  {
+    "id": "sysdesign-010",
+    "question": "What trade-offs do you evaluate when selecting synchronous vs asynchronous communication between services?",
+    "answer": "Synchronous calls are simpler and provide immediate response but increase coupling and latency chains. Asynchronous messaging improves resilience and throughput but adds eventual consistency and operational complexity. Select per use case, considering SLA needs, failure isolation, ordering, and debugging complexity.",
+    "topic": "service_communication",
+    "subtopic": "trade_offs_evaluate_selecting",
+    "difficulty": "medium"
+  }
+]

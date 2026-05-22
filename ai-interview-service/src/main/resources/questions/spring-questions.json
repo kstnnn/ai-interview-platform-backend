@@ -3,96 +3,160 @@
     "id": "spring-001",
     "question": "What is Dependency Injection? How does Spring implement it, and what are the different ways to inject dependencies?",
     "answer": "Dependency Injection (DI) is a design pattern where objects receive their dependencies from an external source rather than creating them. Spring implements DI via its IoC (Inversion of Control) container. Three injection types: constructor injection (recommended, enables immutability and testability), setter injection (allows optional/reconfigurable dependencies), and field injection via `@Autowired` (discouraged, hides dependencies and makes testing harder).",
-    "topic": "spring",
-    "subtopic": "core",
+    "topic": "application_core",
+    "subtopic": "dependency_injection_spring_implement",
     "difficulty": "easy"
   },
   {
     "id": "spring-002",
     "question": "What is the difference between `@Component`, `@Service`, `@Repository`, and `@Controller` annotations?",
-    "answer": "All four are stereotypes that mark a class as a Spring bean. `@Component` is the generic annotation. `@Service` adds semantic meaning for business logic layers. `@Repository` adds automatic exception translation — Spring converts persistence exceptions into its `DataAccessException` hierarchy. `@Controller` marks a web controller that handles HTTP requests and returns views. Spring treats them all as beans, but the specific annotations enable additional framework behavior.",
-    "topic": "spring",
-    "subtopic": "core",
+    "answer": "All four are stereotypes that mark a class as a Spring bean. `@Component` is the generic annotation. `@Service` adds semantic meaning for business logic layers. `@Repository` adds automatic exception translation \u2014 Spring converts persistence exceptions into its `DataAccessException` hierarchy. `@Controller` marks a web controller that handles HTTP requests and returns views. Spring treats them all as beans, but the specific annotations enable additional framework behavior.",
+    "topic": "application_core",
+    "subtopic": "annotations",
     "difficulty": "easy"
   },
   {
     "id": "spring-003",
     "question": "Explain Spring Bean scopes. What is the difference between `singleton` and `prototype`? What happens when you inject a prototype bean into a singleton?",
-    "answer": "Spring bean scopes: `singleton` (one instance per container, default), `prototype` (new instance per request), `request`, `session`, `application` (web scopes). When a prototype bean is injected into a singleton, Spring creates ONE instance at singleton creation time and reuses it — it does NOT create a new instance each time. To get a new instance each time, use `@Lookup`, `ObjectProvider`, or inject `ApplicationContext` and call `getBean()` manually.",
-    "topic": "spring",
-    "subtopic": "core",
+    "answer": "Spring bean scopes: `singleton` (one instance per container, default), `prototype` (new instance per request), `request`, `session`, `application` (web scopes). When a prototype bean is injected into a singleton, Spring creates ONE instance at singleton creation time and reuses it \u2014 it does NOT create a new instance each time. To get a new instance each time, use `@Lookup`, `ObjectProvider`, or inject `ApplicationContext` and call `getBean()` manually.",
+    "topic": "application_core",
+    "subtopic": "spring_bean_scopes_happens",
     "difficulty": "medium"
   },
   {
     "id": "spring-004",
     "question": "What is `@Transactional` in Spring? How does it work, and what happens when a method throws an exception inside a transaction?",
-    "answer": "`@Transactional` enables declarative transaction management. Spring creates a proxy around the bean that opens a transaction before the method, commits on success, or rolls back on RuntimeException/Error. By default, it only rolls back on unchecked exceptions. You can customize with `rollbackFor` / `noRollbackFor`. Important: it only works on public methods and through proxy calls — self-invocation within the same class bypasses the proxy and the transaction is ignored.",
-    "topic": "spring",
-    "subtopic": "data",
+    "answer": "`@Transactional` enables declarative transaction management. Spring creates a proxy around the bean that opens a transaction before the method, commits on success, or rolls back on RuntimeException/Error. By default, it only rolls back on unchecked exceptions. You can customize with `rollbackFor` / `noRollbackFor`. Important: it only works on public methods and through proxy calls \u2014 self-invocation within the same class bypasses the proxy and the transaction is ignored.",
+    "topic": "data_access",
+    "subtopic": "spring_it_work_happens",
     "difficulty": "medium"
   },
   {
     "id": "spring-005",
     "question": "What is Spring Boot Auto-Configuration? How does `@SpringBootApplication` enable it?",
     "answer": "Auto-Configuration automatically configures the Spring context based on classpath dependencies. `@SpringBootApplication` combines `@Configuration`, `@EnableAutoConfiguration`, and `@ComponentScan`. `@EnableAutoConfiguration` reads `META-INF/spring.factories` (or `org.springframework.boot.autoconfigure.AutoConfiguration.imports` in Spring Boot 3+) and applies configurations conditionally using `@ConditionalOnClass`, `@ConditionalOnMissingBean`, etc. Example: if `H2` is on the classpath, Spring auto-configures an in-memory DataSource.",
-    "topic": "spring",
-    "subtopic": "boot",
+    "topic": "platform_configuration",
+    "subtopic": "spring_boot_auto_configuration",
     "difficulty": "medium"
   },
   {
     "id": "spring-006",
     "question": "What is the difference between Spring Data JPA's `CrudRepository`, `PagingAndSortingRepository`, and `JpaRepository`?",
     "answer": "`CrudRepository` provides basic CRUD operations (save, findById, findAll, delete, count). `PagingAndSortingRepository` extends CrudRepository and adds `findAll(Pageable)` and `findAll(Sort)`. `JpaRepository` extends `PagingAndSortingRepository` and adds JPA-specific operations like `flush()`, `saveAndFlush()`, `deleteInBatch()`, and returns Java `List` instead of `Iterable`. For most Spring Boot + JPA projects, `JpaRepository` is the standard choice.",
-    "topic": "spring",
-    "subtopic": "data",
+    "topic": "data_access",
+    "subtopic": "spring_data_jpa_s",
     "difficulty": "easy"
   },
   {
     "id": "spring-007",
     "question": "How does Spring MVC handle an HTTP request from start to finish? Walk through the flow.",
     "answer": "1) HTTP request hits `DispatcherServlet` (front controller). 2) `DispatcherServlet` consults `HandlerMapping` to find the right controller. 3) `HandlerAdapter` invokes the controller method. 4) Controller processes the request and returns a view name or response body (`@ResponseBody`). 5) If a view, `ViewResolver` resolves it and renders the response. 6) If `@RestController`, the return value is serialized (JSON/XML) and written directly to the HTTP response. Interceptors can hook into before/after processing.",
-    "topic": "spring",
-    "subtopic": "mvc",
+    "topic": "web_api",
+    "subtopic": "spring_mvc_handle_http",
     "difficulty": "medium"
   },
   {
     "id": "spring-008",
     "question": "What are Spring Profiles? How would you use them to manage different configurations for dev, test, and prod environments?",
     "answer": "Spring Profiles allow environment-specific configuration. You define `application-dev.yml`, `application-prod.yml`, etc., and activate a profile via `spring.profiles.active=dev` (in env var, command line, or `@Profile` annotation). Beans can be conditionally registered with `@Profile(\"dev\")`. For example: dev profile uses H2 in-memory DB, prod uses PostgreSQL. You can activate multiple profiles and use `!profile` to exclude.",
-    "topic": "spring",
-    "subtopic": "boot",
+    "topic": "platform_configuration",
+    "subtopic": "are_spring_profiles_use",
     "difficulty": "easy"
   },
   {
     "id": "spring-009",
     "question": "What is Spring Security's authentication vs authorization? Explain how JWT-based authentication would work in Spring.",
     "answer": "Authentication verifies WHO the user is (login, credentials). Authorization determines WHAT they can access (roles, permissions). For JWT: 1) User logs in, server validates credentials and generates a signed JWT token. 2) Client stores the token and sends it in the `Authorization: Bearer <token>` header. 3) Spring Security's `OncePerRequestFilter` intercepts requests, validates the JWT signature, extracts the user identity, and sets the `SecurityContext`. 4) `@PreAuthorize(\"hasRole('ADMIN')\")` controls access.",
-    "topic": "spring",
-    "subtopic": "security",
+    "topic": "security",
+    "subtopic": "spring_security_s_authentication",
     "difficulty": "hard"
   },
   {
     "id": "spring-010",
     "question": "What is the difference between `@RequestParam`, `@PathVariable`, and `@RequestBody`? Give an example of each.",
-    "answer": "`@RequestParam` extracts query parameters: `GET /users?name=John` → `@RequestParam String name`. `@PathVariable` extracts URI path segments: `GET /users/42` → `@PathVariable Long id`. `@RequestBody` deserializes the HTTP request body (JSON) into an object: `POST /users` with JSON body → `@RequestBody UserDto user`. `@RequestParam` is for optional query params, `@PathVariable` for resource identification, `@RequestBody` for complex data structures.",
-    "topic": "spring",
-    "subtopic": "mvc",
+    "answer": "`@RequestParam` extracts query parameters: `GET /users?name=John` \u2192 `@RequestParam String name`. `@PathVariable` extracts URI path segments: `GET /users/42` \u2192 `@PathVariable Long id`. `@RequestBody` deserializes the HTTP request body (JSON) into an object: `POST /users` with JSON body \u2192 `@RequestBody UserDto user`. `@RequestParam` is for optional query params, `@PathVariable` for resource identification, `@RequestBody` for complex data structures.",
+    "topic": "web_api",
+    "subtopic": "give_example_each",
     "difficulty": "easy"
   },
   {
     "id": "spring-011",
     "question": "What are Spring AOP (Aspect-Oriented Programming) and aspects? Give a practical example of when you'd use AOP.",
     "answer": "AOP separates cross-cutting concerns (logging, security, transactions) from business logic. Key terms: Aspect (the cross-cutting concern class), Join Point (method execution point), Advice (action: before, after, around), Pointcut (expression matching join points). Practical example: `@Aspect` with `@Around` advice to log execution time of all service methods, or `@Transactional` is itself an AOP aspect that wraps methods in transaction management.",
-    "topic": "spring",
-    "subtopic": "core",
+    "topic": "application_core",
+    "subtopic": "are_spring_aop_aspect",
     "difficulty": "hard"
   },
   {
     "id": "spring-012",
     "question": "How would you handle exceptions globally in a Spring Boot REST API?",
     "answer": "Use `@RestControllerAdvice` (or `@ControllerAdvice` + `@ResponseBody`) combined with `@ExceptionHandler` methods. Example: `@RestControllerAdvice class GlobalExceptionHandler { @ExceptionHandler(ResourceNotFoundException.class) public ResponseEntity<ErrorResponse> handleNotFound(...) { return ResponseEntity.status(404).body(new ErrorResponse(\"Not found\")); } }`. You can handle specific exceptions, generic `Exception`, and return structured error responses with status codes, messages, and timestamps.",
-    "topic": "spring",
-    "subtopic": "mvc",
+    "topic": "web_api",
+    "subtopic": "handle_exceptions_globally_spring",
+    "difficulty": "medium"
+  },
+  {
+    "id": "spring-013",
+    "question": "What is the difference between `@WebMvcTest`, `@DataJpaTest`, and `@SpringBootTest`? When should each be used?",
+    "answer": "`@WebMvcTest` is a slice test for MVC controllers and related web components, usually with mocked services. `@DataJpaTest` is a slice for JPA repositories and entity mappings with an embedded/test DB. `@SpringBootTest` loads the full application context and is best for integration scenarios across layers. Use the smallest slice that validates the behavior you need to keep tests fast and focused.",
+    "topic": "testing_strategy",
+    "subtopic": "should_each_be_used",
+    "difficulty": "medium"
+  },
+  {
+    "id": "spring-014",
+    "question": "How does `@ConfigurationProperties` differ from `@Value`, and why is it preferred in larger systems?",
+    "answer": "`@Value` injects single properties and is convenient for simple cases. `@ConfigurationProperties` binds grouped configuration into typed objects, supports nested structures, validation, metadata generation, and cleaner refactoring. In larger systems it improves maintainability and testability because configuration is centralized and strongly typed instead of spread across many string literals.",
+    "topic": "platform_configuration",
+    "subtopic": "differ_it_preferred_larger",
+    "difficulty": "easy"
+  },
+  {
+    "id": "spring-015",
+    "question": "Explain how method security works with `@PreAuthorize`. How are authorities resolved from JWT claims?",
+    "answer": "`@PreAuthorize` evaluates SpEL expressions before method execution using the authenticated principal from `SecurityContext`. In JWT setups, claims are converted to `GrantedAuthority` values by a converter (`JwtAuthenticationConverter` or custom implementation). Correct mapping is critical, e.g., transforming role claims into `ROLE_*` authorities consistently. If mapping is wrong, authentication may succeed but authorization will fail.",
+    "topic": "security",
+    "subtopic": "method_security_works_are",
+    "difficulty": "hard"
+  },
+  {
+    "id": "spring-016",
+    "question": "Why does `@Transactional` fail on self-invocation, and how can you fix it?",
+    "answer": "Spring applies `@Transactional` through proxies. When a method in a class calls another method in the same class directly, it bypasses the proxy, so transactional advice is not applied. Fixes include moving transactional logic to another bean, calling through the proxy (`AopContext`), or using AspectJ weaving. The cleanest approach is usually separating responsibilities across beans.",
+    "topic": "data_access",
+    "subtopic": "fail_self_invocation_can",
+    "difficulty": "hard"
+  },
+  {
+    "id": "spring-017",
+    "question": "How do you implement idempotency for a POST endpoint in Spring Boot?",
+    "answer": "Use an idempotency key (header/body field), store request fingerprint + response status in a durable store, and return the stored result for duplicate keys. Enforce uniqueness with a DB constraint or lock to prevent race conditions. Add TTL/cleanup strategy and clearly define which payload differences invalidate reuse. This pattern is common for payment, order, and webhook ingestion endpoints.",
+    "topic": "web_api",
+    "subtopic": "implement_idempotency_post_endpoint",
+    "difficulty": "hard"
+  },
+  {
+    "id": "spring-018",
+    "question": "How do Spring events work (`ApplicationEventPublisher`)? When should you use events vs direct service calls?",
+    "answer": "Spring events allow publishing domain/application events to decouple producers from consumers. Listeners can be synchronous or asynchronous (`@Async`). Use events for side effects that should not tightly couple to core transaction flow (notifications, analytics, cache invalidation). Use direct service calls when you need deterministic immediate behavior and clear control flow.",
+    "topic": "application_core",
+    "subtopic": "spring_events_work_should",
+    "difficulty": "medium"
+  },
+  {
+    "id": "spring-019",
+    "question": "How would you monitor and troubleshoot a Spring Boot service in production using Actuator and Micrometer?",
+    "answer": "Enable Actuator endpoints for health, metrics, info, and optionally env/config props with proper security. Use Micrometer to publish metrics (JVM, HTTP latency, DB pools, custom business counters) to Prometheus/Grafana or OTEL backends. Define SLO-focused alerts on error rate, latency, saturation, and restarts. Add correlation IDs and tracing to connect logs, metrics, and distributed traces.",
+    "topic": "observability",
+    "subtopic": "monitor_troubleshoot_spring_boot",
+    "difficulty": "medium"
+  },
+  {
+    "id": "spring-020",
+    "question": "What is optimistic locking in JPA/Spring Data, and how do you handle `OptimisticLockException` in APIs?",
+    "answer": "Optimistic locking uses a version field (e.g., `@Version`) to detect concurrent modifications. Update succeeds only if version matches; otherwise JPA throws `OptimisticLockException`. In APIs, return a conflict response (typically HTTP 409), include latest resource version/state, and let clients retry with refreshed data. It is ideal when conflicts are relatively rare and avoids long DB locks.",
+    "topic": "data_access",
+    "subtopic": "optimistic_locking_jpa_spring",
     "difficulty": "medium"
   }
 ]

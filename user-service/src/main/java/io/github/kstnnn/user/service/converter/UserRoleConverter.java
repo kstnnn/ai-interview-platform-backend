@@ -1,6 +1,6 @@
 package io.github.kstnnn.user.service.converter;
 
-import io.github.kstnnn.user.service.enums.UserRole;
+import io.github.kstnnn.user.service.model.UserRole;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

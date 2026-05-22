@@ -1,0 +1,82 @@
+[
+  {
+    "id": "fastapi-001",
+    "question": "Why is FastAPI considered fast both for development and runtime?",
+    "answer": "FastAPI uses type hints for automatic request validation and OpenAPI generation, reducing boilerplate. Runtime performance is high because it runs on ASGI (Starlette + Uvicorn) with async support. The combination of strong developer ergonomics and efficient async I/O makes it suitable for high-throughput APIs.",
+    "topic": "application_core",
+    "subtopic": "fastapi_considered_fast_both",
+    "difficulty": "easy"
+  },
+  {
+    "id": "fastapi-002",
+    "question": "How does dependency injection (`Depends`) work in FastAPI, and where is it most useful?",
+    "answer": "`Depends` declares dependencies resolved per request (or cached per scope). It's useful for auth context extraction, DB session management, configuration injection, and reusable validation logic. It keeps route handlers thin and testable by separating cross-cutting concerns.",
+    "topic": "application_architecture",
+    "subtopic": "dependency_injection_work_fastapi",
+    "difficulty": "easy"
+  },
+  {
+    "id": "fastapi-003",
+    "question": "What is the difference between sync and async endpoints in FastAPI, and what can go wrong?",
+    "answer": "Async endpoints (`async def`) run in the event loop and should call non-blocking I/O libraries. Sync endpoints run in a threadpool by default. Problems appear when blocking I/O is executed inside async handlers, freezing the event loop and hurting concurrency. Choose async end-to-end or isolate blocking calls explicitly.",
+    "topic": "concurrency",
+    "subtopic": "sync_async_endpoints_fastapi",
+    "difficulty": "medium"
+  },
+  {
+    "id": "fastapi-004",
+    "question": "How do Pydantic models help in request/response handling?",
+    "answer": "Pydantic models provide parsing, validation, type coercion, and serialization for API contracts. They improve safety at boundaries, produce clear validation errors, and automatically feed OpenAPI docs. This keeps endpoints explicit and reduces manual validation code.",
+    "topic": "validation_and_serialization",
+    "subtopic": "pydantic_models_help_request",
+    "difficulty": "easy"
+  },
+  {
+    "id": "fastapi-005",
+    "question": "How would you implement authentication and authorization in FastAPI for JWT tokens?",
+    "answer": "Use OAuth2 password/bearer flow utilities, decode and validate JWT (signature, expiry, issuer/audience), then inject current user via dependency. Authorization is enforced with role/permission checks in dependencies or service layer guards. Keep token parsing centralized and avoid duplicated security logic across routes.",
+    "topic": "security",
+    "subtopic": "implement_authentication_authorization_fastapi",
+    "difficulty": "medium"
+  },
+  {
+    "id": "fastapi-006",
+    "question": "How do you handle database sessions safely in FastAPI?",
+    "answer": "Create a per-request DB session dependency that yields a session and closes it in `finally`. Keep transactions explicit and avoid leaking sessions across requests. For async stacks, use async drivers/ORM sessions consistently. This pattern prevents connection leaks and keeps lifecycle management predictable.",
+    "topic": "data_access",
+    "subtopic": "handle_database_sessions_safely",
+    "difficulty": "medium"
+  },
+  {
+    "id": "fastapi-007",
+    "question": "How would you add observability (logs, metrics, traces) to a FastAPI service?",
+    "answer": "Add middleware for request logging/correlation IDs, expose metrics (latency, errors, throughput) via Prometheus instrumentation, and enable distributed tracing with OpenTelemetry. Include structured logs with context fields and set alerts on SLO signals. Observability should be part of the baseline service template, not an afterthought.",
+    "topic": "observability",
+    "subtopic": "add_observability_logs_metrics",
+    "difficulty": "medium"
+  },
+  {
+    "id": "fastapi-008",
+    "question": "How do background tasks in FastAPI differ from Celery workers?",
+    "answer": "FastAPI `BackgroundTasks` run in-process after response and are suitable for lightweight best-effort jobs. Celery workers run out-of-process with durable queues, retries, scheduling, and better failure isolation. Use background tasks for simple non-critical work; use Celery for reliable distributed job processing.",
+    "topic": "application_architecture",
+    "subtopic": "background_tasks_fastapi_differ",
+    "difficulty": "medium"
+  },
+  {
+    "id": "fastapi-009",
+    "question": "What are common causes of slow FastAPI endpoints and how do you troubleshoot them?",
+    "answer": "Common causes include blocking I/O in async code, N+1 DB queries, missing indexes, large payload serialization, and external dependency latency. Troubleshoot with endpoint-level profiling, query logging, distributed traces, and load testing. Optimize by fixing async boundaries, reducing query count, caching hot paths, and applying pagination.",
+    "topic": "performance_tuning",
+    "subtopic": "are_common_causes_slow",
+    "difficulty": "hard"
+  },
+  {
+    "id": "fastapi-010",
+    "question": "How would you design versioning strategy for FastAPI APIs?",
+    "answer": "Use explicit versioning (path `/v1`, `/v2` or header-based), maintain backward compatibility windows, and deprecate old endpoints with clear timelines. Keep contract tests for versions and avoid silent behavior changes. Versioning policy should be documented and enforced in CI/release processes.",
+    "topic": "api_design",
+    "subtopic": "design_versioning_strategy_fastapi",
+    "difficulty": "hard"
+  }
+]

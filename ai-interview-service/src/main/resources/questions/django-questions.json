@@ -1,0 +1,82 @@
+[
+  {
+    "id": "django-001",
+    "question": "Explain Django's request-response lifecycle from URL hit to response.",
+    "answer": "A request enters middleware, then URL routing resolves the view. The view runs business logic, interacts with models/services, and returns an `HttpResponse` (or DRF response). Template rendering may occur for HTML responses, then response middleware runs before returning to the client. Understanding this lifecycle helps place auth, logging, caching, and exception handling correctly.",
+    "topic": "application_core",
+    "subtopic": "django_s_request_response",
+    "difficulty": "easy"
+  },
+  {
+    "id": "django-002",
+    "question": "What are Django migrations and why should they be treated as source code?",
+    "answer": "Migrations are versioned database schema changes generated from model diffs or written manually. They should be reviewed and committed because they define reproducible database evolution across environments. Treating migrations as source code avoids drift, supports CI/CD, and enables team-safe schema changes.",
+    "topic": "data_access",
+    "subtopic": "are_django_migrations_should",
+    "difficulty": "easy"
+  },
+  {
+    "id": "django-003",
+    "question": "How do you prevent N+1 queries in Django ORM?",
+    "answer": "Use `select_related` for single-valued relations (FK/OneToOne) and `prefetch_related` for many-valued relations (ManyToMany/reverse FK). Combine with query inspection (`django-debug-toolbar`, query logging) and explicit serializer/view optimization in DRF. Avoid lazy relation access in loops without prefetching.",
+    "topic": "data_access",
+    "subtopic": "prevent_n_queries_django",
+    "difficulty": "medium"
+  },
+  {
+    "id": "django-004",
+    "question": "When would you use `select_for_update()` in Django?",
+    "answer": "Use `select_for_update()` inside a transaction when read-modify-write must be protected from concurrent updates (e.g., balance transfers, inventory reservation). It acquires row-level locks in the database until transaction end, preventing conflicting writes and reducing race conditions.",
+    "topic": "transactions_and_locking",
+    "subtopic": "use_django",
+    "difficulty": "hard"
+  },
+  {
+    "id": "django-005",
+    "question": "What is the difference between Django authentication and permissions?",
+    "answer": "Authentication verifies identity (who the user is). Authorization/permissions decide what the user can do. Django provides user auth, groups, model-level permissions, and custom permission checks. In APIs, combine this with DRF permission classes to enforce endpoint-level access rules.",
+    "topic": "security",
+    "subtopic": "django_authentication_permissions",
+    "difficulty": "easy"
+  },
+  {
+    "id": "django-006",
+    "question": "How would you implement background jobs in a Django app?",
+    "answer": "Use a task queue like Celery with Redis/RabbitMQ broker. Trigger tasks from views/services for non-blocking work (emails, report generation, webhooks), keep tasks idempotent, and add retry policies with backoff. Monitor queue latency, failure rates, and worker health in production.",
+    "topic": "application_architecture",
+    "subtopic": "implement_background_jobs_django",
+    "difficulty": "medium"
+  },
+  {
+    "id": "django-007",
+    "question": "What security protections does Django provide by default and what still needs manual care?",
+    "answer": "Django includes CSRF protection, ORM query parameterization against SQL injection, XSS protections via auto-escaping templates, and secure password hashing. Developers still must configure secure cookies/HTTPS, validate file uploads, harden CORS, and avoid exposing debug settings or secret keys in production.",
+    "topic": "security",
+    "subtopic": "security_protections_django_provide",
+    "difficulty": "medium"
+  },
+  {
+    "id": "django-008",
+    "question": "How do Django middleware and DRF authentication/permission classes differ in responsibility?",
+    "answer": "Middleware applies globally at request/response boundaries and is framework-level (logging, tracing, locale, global guards). DRF authentication and permission classes are API-view-level and focused on endpoint access control. Prefer middleware for cross-cutting concerns, DRF classes for API-specific authz rules.",
+    "topic": "web_api",
+    "subtopic": "django_middleware_drf_authentication",
+    "difficulty": "medium"
+  },
+  {
+    "id": "django-009",
+    "question": "How would you optimize a slow DRF list endpoint?",
+    "answer": "Profile SQL count/time first, then reduce query volume with `select_related`/`prefetch_related`, add proper indexes, paginate results, and simplify serializer fields/computation. Avoid per-row external calls, use caching where appropriate, and benchmark before/after to validate improvements.",
+    "topic": "performance_tuning",
+    "subtopic": "optimize_slow_drf_list",
+    "difficulty": "hard"
+  },
+  {
+    "id": "django-010",
+    "question": "How do you structure tests in Django for confidence and speed?",
+    "answer": "Use layered tests: fast unit tests for pure logic, focused DB tests for ORM behavior, and a smaller set of integration/API tests for end-to-end flows. Prefer factories over brittle fixtures, isolate external dependencies with mocks/stubs, and keep deterministic data setup. Run critical paths in CI with coverage gates.",
+    "topic": "testing_strategy",
+    "subtopic": "structure_tests_django_confidence",
+    "difficulty": "medium"
+  }
+]

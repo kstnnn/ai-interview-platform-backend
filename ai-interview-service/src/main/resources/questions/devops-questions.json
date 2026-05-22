@@ -1,0 +1,82 @@
+[
+  {
+    "id": "devops-001",
+    "question": "What is the difference between CI and CD, and what does a healthy pipeline look like?",
+    "answer": "CI continuously validates code changes with automated build/test checks. CD automates delivery and optionally deployment to environments. A healthy pipeline is fast, reliable, and policy-driven, with clear quality gates, artifact versioning, and rollback paths.",
+    "topic": "delivery_pipelines",
+    "subtopic": "ci_cd_healthy_pipeline",
+    "difficulty": "easy"
+  },
+  {
+    "id": "devops-002",
+    "question": "How would you design a safe production deployment strategy?",
+    "answer": "Use strategies like blue/green, canary, or rolling updates with health checks and automated rollback criteria. Deploy gradually, monitor key SLO metrics, and gate progression by error budgets. Safety also requires backward-compatible DB/application changes during rollout.",
+    "topic": "deployment_strategies",
+    "subtopic": "design_safe_production_deployment",
+    "difficulty": "medium"
+  },
+  {
+    "id": "devops-003",
+    "question": "What is the purpose of infrastructure as code and what risks does it reduce?",
+    "answer": "Infrastructure as code makes environment setup declarative, versioned, and repeatable. It reduces configuration drift, manual errors, and undocumented changes. It also enables peer review, automated validation, and auditable infrastructure history.",
+    "topic": "infrastructure_as_code",
+    "subtopic": "purpose_infrastructure_as_code",
+    "difficulty": "easy"
+  },
+  {
+    "id": "devops-004",
+    "question": "How do you manage secrets securely in CI/CD and runtime environments?",
+    "answer": "Store secrets in dedicated secret managers (Vault, cloud KMS services), inject at runtime with least privilege, and avoid storing plaintext in repos or images. Rotate secrets regularly, audit access, and mask sensitive values in logs/build output.",
+    "topic": "platform_security",
+    "subtopic": "manage_secrets_securely_ci",
+    "difficulty": "medium"
+  },
+  {
+    "id": "devops-005",
+    "question": "What are common Docker image optimization practices for backend services?",
+    "answer": "Use multi-stage builds, minimal base images, pinned dependencies, and layer caching-friendly Dockerfiles. Run as non-root, remove build-only artifacts, and include only required runtime files. Smaller images improve startup time, security surface, and registry/network efficiency.",
+    "topic": "containerization",
+    "subtopic": "are_common_docker_image",
+    "difficulty": "medium"
+  },
+  {
+    "id": "devops-006",
+    "question": "How do readiness and liveness probes differ in Kubernetes, and why does misconfiguration hurt reliability?",
+    "answer": "Readiness indicates whether pod should receive traffic; liveness indicates whether container should be restarted. Misconfigured probes can cause traffic to unhealthy pods or restart healthy-but-slow pods, creating cascading failures. Probe thresholds should match startup and recovery characteristics.",
+    "topic": "orchestration",
+    "subtopic": "readiness_liveness_probes_differ",
+    "difficulty": "medium"
+  },
+  {
+    "id": "devops-007",
+    "question": "What SLO/SLI metrics would you define for a backend API service?",
+    "answer": "Typical SLIs are request success rate, latency percentiles, and availability. SLOs define acceptable targets (e.g., p95 latency and error budget). Strong SLOs are user-impact-focused and drive alerting, incident response, and release decisions.",
+    "topic": "observability",
+    "subtopic": "slo_sli_metrics_define",
+    "difficulty": "easy"
+  },
+  {
+    "id": "devops-008",
+    "question": "How do you approach incident response and postmortems in an engineering team?",
+    "answer": "Use clear on-call ownership, runbooks, and severity-based escalation. During incidents, focus on mitigation and communication; after incidents, run blameless postmortems with actionable follow-ups and owners. Track recurring patterns to improve systemic reliability over time.",
+    "topic": "incident_management",
+    "subtopic": "approach_incident_response_postmortems",
+    "difficulty": "medium"
+  },
+  {
+    "id": "devops-009",
+    "question": "How do you design for rollback when both application code and database schema change?",
+    "answer": "Prefer expand-contract migrations: add backward-compatible schema first, deploy app changes, migrate data, then remove old paths later. Avoid breaking schema changes in one step. This supports safe rollbacks and rolling deployments with mixed-version compatibility.",
+    "topic": "deployment_strategies",
+    "subtopic": "design_rollback_both_application",
+    "difficulty": "hard"
+  },
+  {
+    "id": "devops-010",
+    "question": "What are key supply-chain security checks you would add to CI?",
+    "answer": "Include dependency vulnerability scanning, SBOM generation, image scanning, signed artifacts/images, and policy checks for prohibited packages/licenses. Enforce branch protection and trusted build provenance. Security checks should fail fast for critical issues and integrate with remediation workflows.",
+    "topic": "platform_security",
+    "subtopic": "are_key_supply_chain",
+    "difficulty": "hard"
+  }
+]
