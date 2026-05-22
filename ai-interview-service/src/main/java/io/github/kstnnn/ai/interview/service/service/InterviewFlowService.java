@@ -8,13 +8,13 @@ import java.util.UUID;
 
 public interface InterviewFlowService {
 
-  void startSession(UUID sessionId);
+  void startSession(UUID sessionId, String interviewLanguage);
 
   EvaluationResultDto submitAnswer(UUID sessionId, SubmitAnswerDto dto);
 
   NextQuestionResult decideNextQuestion(UUID sessionId, EvaluationResultDto evaluation);
 
-  NextQuestionResult askFirstQuestion(UUID sessionId, String interviewLanguage);
+  NextQuestionResult askFirstQuestion(UUID sessionId);
 
   void finishSession(UUID sessionId, InterviewFinishedReason reason);
 

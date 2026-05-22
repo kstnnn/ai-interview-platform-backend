@@ -9,7 +9,7 @@ import java.util.UUID;
 public interface TopicStateService {
 
   SessionTopicState updateAfterAnswer(
-      UUID sessionId, String topic, int totalScore, double aiConfidence, int roundNumber);
+      UUID sessionId, String topic, double totalScore, double aiConfidence, int roundNumber);
 
   double calculateSessionConfidence(UUID sessionId);
 

@@ -10,6 +10,7 @@ public record SessionCreatedResponse(
     UUID sessionId,
     InterviewSessionStatus status,
     InterviewLevel interviewLevel,
+    String interviewLanguage,
     Integer minQuestions,
     Integer maxQuestions,
     List<String> technologyKeys,

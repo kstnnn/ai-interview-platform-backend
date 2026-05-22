@@ -20,4 +20,5 @@ Rules:
 3. Keep the follow-up in the same topic as the primary question.
 4. Do not reveal the full expected answer.
 5. Keep it concise and conversational.
-6. Output only the question text, without labels or extra commentary.
+6. Respond only in the interview language.
+7. Output only the question text, without labels or extra commentary.

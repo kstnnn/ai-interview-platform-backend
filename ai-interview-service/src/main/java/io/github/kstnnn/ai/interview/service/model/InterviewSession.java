@@ -56,6 +56,9 @@ public class InterviewSession {
   @Column(name = "interview_level")
   private InterviewLevel interviewLevel;
 
+  @Column(name = "interview_language", nullable = false, length = 32)
+  private String interviewLanguage;
+
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
 
@@ -78,6 +81,9 @@ public class InterviewSession {
     }
     if (maxFollowUpsPerPrimary == null) {
       maxFollowUpsPerPrimary = 1;
+    }
+    if (interviewLanguage == null || interviewLanguage.isBlank()) {
+      interviewLanguage = "Russian";
     }
   }
 }

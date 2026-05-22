@@ -29,13 +29,13 @@ public class TopicStateServiceImpl implements TopicStateService {
   @Transactional
   @Override
   public SessionTopicState updateAfterAnswer(
-      UUID sessionId, String topic, int totalScore, double aiConfidence, int roundNumber) {
+      UUID sessionId, String topic, double totalScore, double aiConfidence, int roundNumber) {
     var state =
         topicStateRepository
             .findBySessionIdAndTopic(sessionId, topic)
             .orElseGet(() -> createNewState(sessionId, topic));
 
-    double normalized = totalScore / 5.0;
+    double normalized = clamp01(totalScore);
     int newQuestionsAsked = state.getQuestionsAsked() + 1;
     state.setQuestionsAsked(newQuestionsAsked);
     state.setLastAskedRound(roundNumber);
@@ -52,7 +52,7 @@ public class TopicStateServiceImpl implements TopicStateService {
     state.setConfidenceScore(BigDecimal.valueOf(confidence));
 
     double prevAvg = state.getAvgScore().doubleValue();
-    double newAvg = (prevAvg * (newQuestionsAsked - 1) + totalScore) / newQuestionsAsked;
+    double newAvg = (prevAvg * (newQuestionsAsked - 1) + normalized) / newQuestionsAsked;
     state.setAvgScore(BigDecimal.valueOf(newAvg));
 
     return topicStateRepository.save(state);
@@ -143,5 +143,9 @@ public class TopicStateServiceImpl implements TopicStateService {
     state.setMasteryScore(BigDecimal.ZERO);
     state.setConfidenceScore(BigDecimal.ZERO);
     return state;
+  }
+
+  private double clamp01(double value) {
+    return Math.max(0.0, Math.min(1.0, value));
   }
 }

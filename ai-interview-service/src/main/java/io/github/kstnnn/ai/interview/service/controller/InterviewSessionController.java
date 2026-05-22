@@ -31,10 +31,15 @@ public class InterviewSessionController {
             sessionId,
             InterviewSessionStatus.CREATED,
             dto.interviewLevel(),
+            resolveInterviewLanguage(dto.interviewLanguage()),
             dto.minQuestions(),
             dto.maxQuestions(),
             dto.technologyKeys(),
             Instant.now());
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
+  }
+
+  private String resolveInterviewLanguage(String interviewLanguage) {
+    return interviewLanguage == null || interviewLanguage.isBlank() ? "Russian" : interviewLanguage;
   }
 }

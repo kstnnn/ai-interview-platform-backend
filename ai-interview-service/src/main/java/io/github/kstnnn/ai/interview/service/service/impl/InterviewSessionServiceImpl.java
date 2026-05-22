@@ -52,6 +52,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         .userId(sessionDto.userId())
         .status(InterviewSessionStatus.CREATED)
         .interviewLevel(sessionDto.interviewLevel())
+        .interviewLanguage(resolveInterviewLanguage(sessionDto.interviewLanguage()))
         .targetConfidence(targetConfidence)
         .minQuestions(sessionDto.minQuestions())
         .maxQuestions(sessionDto.maxQuestions())
@@ -64,5 +65,9 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
       case MIDDLE -> new BigDecimal("0.8");
       case SENIOR -> new BigDecimal("0.9");
     };
+  }
+
+  private String resolveInterviewLanguage(String interviewLanguage) {
+    return interviewLanguage == null || interviewLanguage.isBlank() ? "Russian" : interviewLanguage;
   }
 }

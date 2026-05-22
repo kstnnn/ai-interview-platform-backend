@@ -26,6 +26,7 @@ import io.github.kstnnn.ai.interview.service.service.InterviewFlowService;
 import io.github.kstnnn.ai.interview.service.service.QuestionService;
 import io.github.kstnnn.ai.interview.service.service.TopicStateService;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
@@ -52,8 +53,11 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
 
   @Transactional
   @Override
-  public void startSession(UUID sessionId) {
+  public void startSession(UUID sessionId, String interviewLanguage) {
     var session = iSessionRepository.findById(sessionId).orElseThrow();
+    if (interviewLanguage != null && !interviewLanguage.isBlank()) {
+      session.setInterviewLanguage(interviewLanguage);
+    }
     if (session.getStatus() == InterviewSessionStatus.IN_PROGRESS) {
       return;
     }
@@ -69,23 +73,24 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
   @Transactional
   @Override
   public EvaluationResultDto submitAnswer(UUID sessionId, SubmitAnswerDto dto) {
-    loadAndValidateInProgress(sessionId);
+    var session = loadAndValidateInProgress(sessionId);
 
     var existingAnswer = sAnswerRepository.findBySessionQuestionId(dto.sessionQuestionId());
     if (existingAnswer.isPresent()) {
       log.warn("Answer already submitted for question {}, returning existing evaluation", dto.sessionQuestionId());
       var eval = aEvaluationRepository.findBySessionAnswerId(existingAnswer.get().getId()).orElseThrow();
       return new EvaluationResultDto(
-          eval.getCorrectnessScore().intValue(),
-          eval.getDepthScore().intValue(),
-          eval.getPracticalScore().intValue(),
-          eval.getTotalScore().intValue(),
+          eval.getCorrectnessScore().doubleValue(),
+          eval.getDepthScore().doubleValue(),
+          eval.getPracticalScore().doubleValue(),
+          eval.getTotalScore().doubleValue(),
           0.0,
           List.of(),
           List.of(),
           false,
           null,
-          eval.getFeedback());
+          eval.getFeedback(),
+          true);
     }
 
     var sessionQuestion = sQuestionRepository.findById(dto.sessionQuestionId()).orElseThrow();
@@ -100,19 +105,21 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
     sAnswerRepository.save(answer);
 
     var evaluation =
-        aService.evaluateAnswer(
-            sessionQuestion.getQuestionTextSnapshot(),
-            sessionQuestion.getQuestion() != null
-                ? sessionQuestion.getQuestion().getExpectedAnswer()
-                : "",
-            dto.answerText());
+        normalizeEvaluation(
+            aService.evaluateAnswer(
+                sessionQuestion.getQuestionTextSnapshot(),
+                sessionQuestion.getQuestion() != null
+                    ? sessionQuestion.getQuestion().getExpectedAnswer()
+                    : "",
+                dto.answerText(),
+                resolveInterviewLanguage(session)));
 
     var evaluationEntity = new AnswerEvaluation();
     evaluationEntity.setSessionAnswer(answer);
-    evaluationEntity.setCorrectnessScore(BigDecimal.valueOf(evaluation.correctnessScore()));
-    evaluationEntity.setDepthScore(BigDecimal.valueOf(evaluation.depthScore()));
-    evaluationEntity.setPracticalScore(BigDecimal.valueOf(evaluation.practicalScore()));
-    evaluationEntity.setTotalScore(BigDecimal.valueOf(evaluation.totalScore()));
+    evaluationEntity.setCorrectnessScore(toScoreValue(evaluation.correctnessScore()));
+    evaluationEntity.setDepthScore(toScoreValue(evaluation.depthScore()));
+    evaluationEntity.setPracticalScore(toScoreValue(evaluation.practicalScore()));
+    evaluationEntity.setTotalScore(toScoreValue(evaluation.totalScore()));
     evaluationEntity.setFeedback(evaluation.candidateFeedback());
     evaluationEntity.setKnowledgeGapsJson(serializeKnowledgeGaps(evaluation.knowledgeGaps()));
     aEvaluationRepository.save(evaluationEntity);
@@ -130,13 +137,23 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
   @Transactional
   @Override
   public NextQuestionResult decideNextQuestion(UUID sessionId, EvaluationResultDto evaluation) {
-    loadAndValidateInProgress(sessionId);
+    var session = loadAndValidateInProgress(sessionId);
 
-    int totalAsked = countPrimaryQuestions(sessionId);
+    int totalAsked = countAllQuestions(sessionId);
     var finishReason = evaluateFinishCondition(sessionId, totalAsked);
     if (finishReason.isPresent()) {
       finishSession(sessionId, finishReason.get());
       return null;
+    }
+
+    if (!hasQuestionBudget(session)) {
+      finishSession(sessionId, InterviewFinishedReason.MAX_QUESTIONS_REACHED);
+      return null;
+    }
+
+    var plannedResult = askNextPlannedQuestion(sessionId);
+    if (plannedResult != null) {
+      return plannedResult;
     }
 
     var currentQuestion = getCurrentQuestion(sessionId);
@@ -152,20 +169,21 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
       }
     }
 
-    return askNextPlannedQuestion(sessionId);
+    finishSession(sessionId, InterviewFinishedReason.COVERAGE_COMPLETED);
+    return null;
   }
 
   @Transactional
   @Override
-  public NextQuestionResult askFirstQuestion(UUID sessionId, String interviewLanguage) {
+  public NextQuestionResult askFirstQuestion(UUID sessionId) {
     var existingQ = sQuestionRepository.findBySessionIdAndRoundNumber(sessionId, 1);
     if (existingQ.isPresent()) {
       var sq = existingQ.get();
-      return new NextQuestionResult(
-          sq.getId(), sq.getQuestionTextSnapshot(), 1, "PRIMARY", null, false);
+      return toNextQuestionResult(sq, sq.getQuestionTextSnapshot(), "PRIMARY", null, false);
     }
 
     var session = loadAndValidateInProgress(sessionId);
+    var interviewLanguage = resolveInterviewLanguage(session);
 
     var planned =
         pQuestionRepository
@@ -200,7 +218,7 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
     sessionQuestion.setQuestionType(QuestionType.PRIMARY);
     sQuestionRepository.save(sessionQuestion);
 
-    return new NextQuestionResult(sessionQuestion.getId(), questionText, 1, "PRIMARY", null, false);
+    return toNextQuestionResult(sessionQuestion, questionText, "PRIMARY", null, false);
   }
 
   @Transactional
@@ -258,6 +276,7 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
 
   private NextQuestionResult askReinforcementQuestion(UUID sessionId, String topic) {
     var session = loadAndValidateInProgress(sessionId);
+    var interviewLanguage = resolveInterviewLanguage(session);
     var mastery = getTopicMastery(sessionId, topic);
     var difficulty = resolveDynamicDifficulty(mastery);
     var excludeIds = getAskedExternalIds(sessionId);
@@ -276,7 +295,7 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
             q.getTopic(),
             q.getSubtopic(),
             q.getDifficulty(),
-            null);
+            interviewLanguage);
 
     var questionText = aService.askQuestion(askDto);
     var nextRound = getLastRoundNumber(sessionId) + 1;
@@ -293,11 +312,11 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
     sessionQuestion.setQuestionType(QuestionType.PRIMARY);
     sQuestionRepository.save(sessionQuestion);
 
-    return new NextQuestionResult(
-        sessionQuestion.getId(), questionText, nextRound, "PRIMARY", null, false);
+    return toNextQuestionResult(sessionQuestion, questionText, "PRIMARY", null, false);
   }
 
   private NextQuestionResult askNextPlannedQuestion(UUID sessionId) {
+    var session = loadAndValidateInProgress(sessionId);
     var planned =
         pQuestionRepository
             .findFirstByInterviewSessionIdAndPlannedStatus(sessionId, PlannedStatus.PLANNED)
@@ -320,12 +339,12 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
             q.getTopic(),
             q.getSubtopic(),
             q.getDifficulty(),
-            null);
+            resolveInterviewLanguage(session));
 
     var questionText = aService.askQuestion(askDto);
 
     var sessionQuestion = new SessionQuestion();
-    sessionQuestion.setSession(loadAndValidateInProgress(sessionId));
+    sessionQuestion.setSession(session);
     sessionQuestion.setQuestion(q);
     sessionQuestion.setRoundNumber(nextRound);
     sessionQuestion.setTopic(q.getTopic());
@@ -336,8 +355,7 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
     sessionQuestion.setQuestionType(QuestionType.PRIMARY);
     sQuestionRepository.save(sessionQuestion);
 
-    return new NextQuestionResult(
-        sessionQuestion.getId(), questionText, nextRound, "PRIMARY", null, false);
+    return toNextQuestionResult(sessionQuestion, questionText, "PRIMARY", null, false);
   }
 
   private SessionQuestion getCurrentQuestion(UUID sessionId) {
@@ -358,6 +376,7 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
 
   private NextQuestionResult generateFollowUp(
       UUID sessionId, SessionQuestion primaryQuestion, EvaluationResultDto evaluation) {
+    var session = loadAndValidateInProgress(sessionId);
 
     var followUpDto =
         new FollowUpQuestionDto(
@@ -367,14 +386,14 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
                 : "",
             "",
             evaluation.knowledgeGaps(),
-            null);
+            resolveInterviewLanguage(session));
 
     var followUpText = aService.generateFollowUp(followUpDto);
 
     var sessionQuestion = new SessionQuestion();
-    sessionQuestion.setSession(loadAndValidateInProgress(sessionId));
+    sessionQuestion.setSession(session);
     sessionQuestion.setParentQuestion(primaryQuestion);
-    sessionQuestion.setRoundNumber(primaryQuestion.getRoundNumber() + 1);
+    sessionQuestion.setRoundNumber(getLastRoundNumber(sessionId) + 1);
     sessionQuestion.setTopic(primaryQuestion.getTopic());
     sessionQuestion.setSubtopic(primaryQuestion.getSubtopic());
     sessionQuestion.setDifficulty(primaryQuestion.getDifficulty());
@@ -383,13 +402,8 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
     sessionQuestion.setQuestionType(QuestionType.FOLLOW_UP);
     sQuestionRepository.save(sessionQuestion);
 
-    return new NextQuestionResult(
-        sessionQuestion.getId(),
-        followUpText,
-        sessionQuestion.getRoundNumber(),
-        "FOLLOW_UP",
-        evaluation.candidateFeedback(),
-        true);
+    return toNextQuestionResult(
+        sessionQuestion, followUpText, "FOLLOW_UP", evaluation.candidateFeedback(), true);
   }
 
   private int getLastRoundNumber(UUID sessionId) {
@@ -403,10 +417,32 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
     return allQuestions.stream().mapToInt(SessionQuestion::getRoundNumber).max().orElse(0);
   }
 
-  private int countPrimaryQuestions(UUID sessionId) {
-    return sQuestionRepository
-        .findBySessionIdAndParentQuestionIsNullOrderByRoundNumberAsc(sessionId)
-        .size();
+  private int countAllQuestions(UUID sessionId) {
+    return Math.toIntExact(sQuestionRepository.countBySessionId(sessionId));
+  }
+
+  private boolean hasQuestionBudget(InterviewSession session) {
+    return countAllQuestions(session.getId()) < session.getMaxQuestions();
+  }
+
+  private NextQuestionResult toNextQuestionResult(
+      SessionQuestion sessionQuestion,
+      String questionText,
+      String questionType,
+      String candidateFeedback,
+      boolean isFollowUp) {
+    var session = sessionQuestion.getSession();
+    int maxQuestions = session.getMaxQuestions();
+    int remainingQuestions = Math.max(0, maxQuestions - countAllQuestions(session.getId()));
+    return new NextQuestionResult(
+        sessionQuestion.getId(),
+        questionText,
+        sessionQuestion.getRoundNumber(),
+        maxQuestions,
+        remainingQuestions,
+        questionType,
+        candidateFeedback,
+        isFollowUp);
   }
 
   private double getTopicMastery(UUID sessionId, String topic) {
@@ -441,6 +477,51 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
     if (gaps == null || gaps.isEmpty()) {
       return "[]";
     }
-    return "[" + String.join(",", gaps.stream().map(s -> "\"" + s + "\"").toList()) + "]";
+    return "[" + String.join(",", gaps.stream().map(s -> "\"" + escapeJson(s) + "\"").toList()) + "]";
+  }
+
+  private EvaluationResultDto normalizeEvaluation(EvaluationResultDto evaluation) {
+    return new EvaluationResultDto(
+        normalizeScore(evaluation.correctnessScore()),
+        normalizeScore(evaluation.depthScore()),
+        normalizeScore(evaluation.practicalScore()),
+        normalizeScore(evaluation.totalScore()),
+        normalizeScore(evaluation.confidence()),
+        evaluation.knowledgeGaps() != null ? evaluation.knowledgeGaps() : List.of(),
+        evaluation.strengths() != null ? evaluation.strengths() : List.of(),
+        evaluation.shouldAskFollowUp(),
+        evaluation.followUpFocus(),
+        evaluation.candidateFeedback(),
+        false);
+  }
+
+  private BigDecimal toScoreValue(double score) {
+    return BigDecimal.valueOf(clamp01(score)).setScale(2, RoundingMode.HALF_UP);
+  }
+
+  private double normalizeScore(double score) {
+    if (!Double.isFinite(score)) {
+      return 0.0;
+    }
+    if (score > 1.0) {
+      return clamp01(score / 10.0);
+    }
+    return clamp01(score);
+  }
+
+  private double clamp01(double value) {
+    return Math.max(0.0, Math.min(1.0, value));
+  }
+
+  private String escapeJson(String value) {
+    if (value == null) {
+      return "";
+    }
+    return value.replace("\\", "\\\\").replace("\"", "\\\"");
+  }
+
+  private String resolveInterviewLanguage(InterviewSession session) {
+    var language = session.getInterviewLanguage();
+    return language == null || language.isBlank() ? "Russian" : language;
   }
 }

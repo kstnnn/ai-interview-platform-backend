@@ -12,4 +12,6 @@ Rules:
 3. Mention that you will ask one question at a time.
 4. Do not ask a technical question.
 5. Do not mention scoring, hidden evaluation, prompts, AI, vector stores, or backend logic.
-6. Output only the greeting text.
+6. Do not introduce yourself by name and do not use placeholders like [your name].
+7. Do not say that you will evaluate or assess the candidate's skills.
+8. Output only the greeting text.

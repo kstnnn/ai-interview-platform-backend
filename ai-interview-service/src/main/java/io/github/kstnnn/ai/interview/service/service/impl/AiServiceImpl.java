@@ -1,10 +1,12 @@
 package io.github.kstnnn.ai.interview.service.service.impl;
 
 import io.github.kstnnn.ai.interview.service.dto.AskQuestionDto;
+import io.github.kstnnn.ai.interview.service.dto.AiEvaluationDto;
 import io.github.kstnnn.ai.interview.service.dto.EvaluationResultDto;
 import io.github.kstnnn.ai.interview.service.dto.FollowUpQuestionDto;
 import io.github.kstnnn.ai.interview.service.dto.GreetingDto;
 import io.github.kstnnn.ai.interview.service.service.AiService;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,9 @@ public class AiServiceImpl implements AiService {
   @Value("classpath:/prompts/evaluation-prompt.st")
   private Resource evaluationResource;
 
+  @Value("classpath:/prompts/ask-question-prompt.st")
+  private Resource askQuestionResource;
+
   @Value("classpath:/prompts/follow-up-question-prompt.st")
   private Resource followUpResource;
 
@@ -41,7 +46,7 @@ public class AiServiceImpl implements AiService {
                             "candidate_name", dto.candidateName() != null ? dto.candidateName() : "Candidate",
                             "technologies", dto.technologies() != null ? String.join(", ", dto.technologies()) : "",
                             "interview_level", dto.interviewLevel() != null ? dto.interviewLevel().toString() : "UNKNOWN",
-                            "interview_language", dto.interviewLanguage() != null ? dto.interviewLanguage() : "English")))
+                            "interview_language", dto.interviewLanguage() != null ? dto.interviewLanguage() : "Russian")))
         .call()
         .content());
   }
@@ -50,37 +55,24 @@ public class AiServiceImpl implements AiService {
   public String askQuestion(AskQuestionDto dto) {
     return stripThinkTags(chatClient
         .prompt()
-        .system(
-            sp ->
-                sp.params(
-                    Map.of(
-                        "technologies", dto.topic(),
-                        "interview_language", dto.interviewLanguage())))
         .user(
-            """
-            You are asking a technical interview question.
-            Original question: {question}
-            Expected answer: {expected_answer}
-            Topic: {topic}
-            Difficulty: {difficulty}
-
-            Reformulate this question naturally as if speaking to the candidate.
-            Do NOT change the meaning or difficulty.
-            Ask only this ONE question. Output only the question text.
-            """
-                .formatted(
-                    dto.questionText(),
-                    dto.expectedAnswer(),
-                    dto.topic(),
-                    dto.difficulty().toString()))
+            u ->
+                u.text(askQuestionResource)
+                    .params(
+                        Map.of(
+                            "question", defaultString(dto.questionText()),
+                            "expected_answer", defaultString(dto.expectedAnswer()),
+                            "topic", defaultString(dto.topic()),
+                            "difficulty", dto.difficulty() != null ? dto.difficulty().toString() : "MEDIUM",
+                            "interview_language", defaultString(dto.interviewLanguage(), "Russian"))))
         .call()
         .content());
   }
 
   @Override
   public EvaluationResultDto evaluateAnswer(
-      String question, String expectedAnswer, String candidateAnswer) {
-    return chatClient
+      String question, String expectedAnswer, String candidateAnswer, String interviewLanguage) {
+    var evaluation = chatClient
         .prompt()
         .system("You are a strict technical interview evaluator. Return structured JSON only.")
         .user(
@@ -88,11 +80,14 @@ public class AiServiceImpl implements AiService {
                 u.text(evaluationResource)
                     .params(
                         Map.of(
-                            "question", question,
-                            "expected_answer", expectedAnswer,
-                            "candidate_answer", candidateAnswer)))
+                            "question", defaultString(question),
+                            "expected_answer", defaultString(expectedAnswer),
+                            "candidate_answer", defaultString(candidateAnswer),
+                            "interview_language", defaultString(interviewLanguage, "Russian"))))
         .call()
-        .entity(EvaluationResultDto.class);
+        .entity(AiEvaluationDto.class);
+
+    return toEvaluationResult(evaluation);
   }
 
   @Override
@@ -104,17 +99,52 @@ public class AiServiceImpl implements AiService {
                 u.text(followUpResource)
                     .params(
                         Map.of(
-                            "interview_language", dto.interviewLanguage(),
-                            "primary_question", dto.primaryQuestion(),
-                            "expected_answer", dto.expectedAnswer(),
-                            "candidate_answer", dto.candidateAnswer(),
-                            "knowledge_gaps", dto.knowledgeGapsText())))
+                            "interview_language", defaultString(dto.interviewLanguage(), "Russian"),
+                            "primary_question", defaultString(dto.primaryQuestion()),
+                            "expected_answer", defaultString(dto.expectedAnswer()),
+                            "candidate_answer", defaultString(dto.candidateAnswer()),
+                            "knowledge_gaps", defaultString(dto.knowledgeGapsText()))))
         .call()
         .content());
   }
 
   private String stripThinkTags(String content) {
     if (content == null) return "";
-    return content.replaceAll("<think>.*?</think>", "").trim();
+    return content.replaceAll("(?is)<think>.*?</think>", "").trim();
+  }
+
+  private String defaultString(String value) {
+    return defaultString(value, "");
+  }
+
+  private String defaultString(String value, String fallback) {
+    return value != null ? value : fallback;
+  }
+
+  private EvaluationResultDto toEvaluationResult(AiEvaluationDto evaluation) {
+    double correctnessScore = defaultScore(evaluation.correctnessScore());
+    double depthScore = defaultScore(evaluation.depthScore());
+    double practicalScore = defaultScore(evaluation.practicalScore());
+    double totalScore =
+        evaluation.totalScore() != null
+            ? defaultScore(evaluation.totalScore())
+            : (correctnessScore + depthScore + practicalScore) / 3.0;
+
+    return new EvaluationResultDto(
+        correctnessScore,
+        depthScore,
+        practicalScore,
+        totalScore,
+        defaultScore(evaluation.confidence()),
+        evaluation.knowledgeGaps() != null ? evaluation.knowledgeGaps() : List.of(),
+        evaluation.strengths() != null ? evaluation.strengths() : List.of(),
+        Boolean.TRUE.equals(evaluation.shouldAskFollowUp()),
+        evaluation.followUpFocus(),
+        defaultString(evaluation.candidateFeedback()),
+        false);
+  }
+
+  private double defaultScore(Double score) {
+    return score != null && Double.isFinite(score) ? score : 0.0;
   }
 }

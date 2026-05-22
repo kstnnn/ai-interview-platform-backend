@@ -10,7 +10,7 @@ public record FollowUpQuestionDto(
     String interviewLanguage) {
 
   public String interviewLanguage() {
-    return interviewLanguage == null || interviewLanguage.isBlank() ? "English" : interviewLanguage;
+    return interviewLanguage == null || interviewLanguage.isBlank() ? "Russian" : interviewLanguage;
   }
 
   public String knowledgeGapsText() {

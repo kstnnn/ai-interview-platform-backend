@@ -12,7 +12,7 @@ public interface AiService {
   String askQuestion(AskQuestionDto dto);
 
   EvaluationResultDto evaluateAnswer(
-      String question, String expectedAnswer, String candidateAnswer);
+      String question, String expectedAnswer, String candidateAnswer, String interviewLanguage);
 
   String generateFollowUp(FollowUpQuestionDto dto);
 }

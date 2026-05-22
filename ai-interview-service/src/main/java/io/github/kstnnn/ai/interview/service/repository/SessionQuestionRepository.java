@@ -14,5 +14,7 @@ public interface SessionQuestionRepository extends ListCrudRepository<SessionQue
 
   Optional<SessionQuestion> findBySessionIdAndRoundNumber(UUID sessionId, int roundNumber);
 
+  long countBySessionId(UUID sessionId);
+
   long countByParentQuestionId(UUID parentQuestionId);
 }

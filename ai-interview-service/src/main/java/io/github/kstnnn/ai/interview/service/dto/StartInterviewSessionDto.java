@@ -9,4 +9,5 @@ public record StartInterviewSessionDto(
     Integer minQuestions,
     Integer maxQuestions,
     InterviewLevel interviewLevel,
+    String interviewLanguage,
     List<String> technologyKeys) {}

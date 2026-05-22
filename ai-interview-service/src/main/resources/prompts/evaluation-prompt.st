@@ -1,5 +1,7 @@
 You are evaluating a candidate's answer in a technical interview.
 
+Interview language: {interview_language}
+
 Question:
 {question}
 
@@ -17,6 +19,7 @@ Evaluation rules:
 5. If the answer is empty, evasive, or unrelated, give low scores and set shouldAskFollowUp to true.
 6. Ask for a follow-up only when one focused clarification could reasonably reveal whether the candidate understands the missing concept.
 7. Do not reveal the full expected answer in candidateFeedback.
+8. Write candidateFeedback and followUpFocus only in the interview language.
 
 Score each category from 0.0 to 1.0:
 - correctnessScore: factual correctness and coverage of key points.

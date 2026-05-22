@@ -8,6 +8,7 @@ import io.github.kstnnn.ai.interview.service.service.InterviewFlowService;
 import io.github.kstnnn.ai.interview.service.service.TopicStateService;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -21,6 +22,8 @@ import org.springframework.stereotype.Controller;
 @Slf4j
 public class InterviewStompController {
 
+  private static final Pattern RETRY_AFTER_PATTERN = Pattern.compile("try again in ([0-9.]+)s");
+
   private final InterviewFlowService iFlowService;
   private final TopicStateService topicStateService;
   private final AiService aService;
@@ -31,13 +34,13 @@ public class InterviewStompController {
       @DestinationVariable UUID sessionId, @Payload GreetingDto dto) {
     try {
       log.info("Starting session {}", sessionId);
-      iFlowService.startSession(sessionId);
+      iFlowService.startSession(sessionId, dto.interviewLanguage());
 
       var greeting = aService.greeting(dto);
       publishEvent(sessionId, "GREETING", Map.of("text", greeting));
     } catch (Exception e) {
       log.error("Failed to start session {}", sessionId, e);
-      publishError(sessionId, "Failed to start session: " + e.getMessage());
+      publishException(sessionId, "Failed to start session", e);
     }
   }
 
@@ -45,7 +48,7 @@ public class InterviewStompController {
   public void onCandidateReady(@DestinationVariable UUID sessionId) {
     try {
       log.info("Candidate ready for session {}", sessionId);
-      var result = iFlowService.askFirstQuestion(sessionId, "English");
+      var result = iFlowService.askFirstQuestion(sessionId);
 
         publishEvent(
             sessionId,
@@ -53,11 +56,14 @@ public class InterviewStompController {
             Map.of(
                 "sessionQuestionId", result.sessionQuestionId(),
                 "roundNumber", result.roundNumber(),
+                "questionIndex", result.roundNumber(),
+                "maxQuestions", result.maxQuestions(),
+                "remainingQuestions", result.remainingQuestions(),
                 "questionType", result.questionType(),
                 "text", result.questionText()));
     } catch (Exception e) {
       log.error("Failed to ask first question for session {}", sessionId, e);
-      publishError(sessionId, "Failed to start interview: " + e.getMessage());
+      publishException(sessionId, "Failed to start interview", e);
     }
   }
 
@@ -73,8 +79,11 @@ public class InterviewStompController {
           sessionId,
           "ANSWER_EVALUATED",
           Map.of(
-              "totalScore", evaluation.totalScore(),
-              "feedback", evaluation.candidateFeedback()));
+              "totalScore", evaluation.totalScore()));
+
+      if (evaluation.duplicateSubmission()) {
+        return;
+      }
 
       var nextResult = iFlowService.decideNextQuestion(sessionId, evaluation);
 
@@ -91,24 +100,20 @@ public class InterviewStompController {
         return;
       }
 
-      if (nextResult.isFollowUp() && nextResult.candidateFeedback() != null) {
-        publishEvent(
-            sessionId,
-            "FEEDBACK",
-            Map.of("text", nextResult.candidateFeedback()));
-      }
-
       publishEvent(
           sessionId,
           "QUESTION_ASKED",
           Map.of(
               "sessionQuestionId", nextResult.sessionQuestionId(),
               "roundNumber", nextResult.roundNumber(),
+              "questionIndex", nextResult.roundNumber(),
+              "maxQuestions", nextResult.maxQuestions(),
+              "remainingQuestions", nextResult.remainingQuestions(),
               "questionType", nextResult.questionType(),
               "text", nextResult.questionText()));
     } catch (Exception e) {
       log.error("Failed to process answer for session {}", sessionId, e);
-      publishError(sessionId, "Failed to process answer: " + e.getMessage());
+      publishException(sessionId, "Failed to process answer", e);
     }
   }
 
@@ -132,6 +137,46 @@ public class InterviewStompController {
   private void publishError(UUID sessionId, String message) {
     var destination = "/topic/interviews/" + sessionId + "/events";
     messagingTemplate.convertAndSend(destination, new InterviewEvent("ERROR", Map.of("message", message)));
+  }
+
+  private void publishException(UUID sessionId, String fallbackMessage, Exception exception) {
+    if (isRateLimit(exception)) {
+      publishEvent(
+          sessionId,
+          "ERROR",
+          Map.of(
+              "code", "AI_RATE_LIMIT",
+              "message", "AI provider rate limit reached. Please wait a few seconds and retry.",
+              "retryAfterSeconds", extractRetryAfterSeconds(exception)));
+      return;
+    }
+    publishError(sessionId, fallbackMessage + ": " + exception.getMessage());
+  }
+
+  private boolean isRateLimit(Throwable throwable) {
+    while (throwable != null) {
+      var message = throwable.getMessage();
+      if (message != null
+          && (message.contains("HTTP 429") || message.toLowerCase().contains("rate limit"))) {
+        return true;
+      }
+      throwable = throwable.getCause();
+    }
+    return false;
+  }
+
+  private double extractRetryAfterSeconds(Throwable throwable) {
+    while (throwable != null) {
+      var message = throwable.getMessage();
+      if (message != null) {
+        var matcher = RETRY_AFTER_PATTERN.matcher(message);
+        if (matcher.find()) {
+          return Double.parseDouble(matcher.group(1));
+        }
+      }
+      throwable = throwable.getCause();
+    }
+    return 5.0;
   }
 
   public record InterviewEvent(String type, Map<String, Object> payload) {}
