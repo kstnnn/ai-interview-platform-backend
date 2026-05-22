@@ -43,7 +43,8 @@ public class UserServiceImpl implements UserService {
   @Override
   public UserResponseDto getByProviderUserId(String providerUserId) {
     log.info("Get user by providerUserId {}", providerUserId);
-    return userRepository.findResponseDtoByProviderUserId(providerUserId)
+    return userRepository
+        .findResponseDtoByProviderUserId(providerUserId)
         .orElseThrow(() -> new UserNotFoundException("providerUserId", providerUserId));
   }
 
