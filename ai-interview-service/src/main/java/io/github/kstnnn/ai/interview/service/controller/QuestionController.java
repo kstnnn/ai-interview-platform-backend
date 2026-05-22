@@ -1,7 +1,6 @@
 package io.github.kstnnn.ai.interview.service.controller;
 
 import io.github.kstnnn.ai.interview.service.model.Question;
-import io.github.kstnnn.ai.interview.service.model.Technology;
 import io.github.kstnnn.ai.interview.service.service.QuestionService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +20,9 @@ public class QuestionController {
   private final QuestionService questionService;
 
   @GetMapping
-  public ResponseEntity<List<Question>> getBaseQuestions(@RequestParam List<Technology> techs) {
-    log.info(techs.toString());
-    List<Question> questions = questionService.getBaseQuestions(techs);
+  public ResponseEntity<List<Question>> getBaseQuestions(@RequestParam List<String> technologyKeys) {
+    log.info("technologyKeys={}", technologyKeys);
+    List<Question> questions = questionService.getBaseQuestions(technologyKeys);
     return ResponseEntity.ok(questions);
   }
 }

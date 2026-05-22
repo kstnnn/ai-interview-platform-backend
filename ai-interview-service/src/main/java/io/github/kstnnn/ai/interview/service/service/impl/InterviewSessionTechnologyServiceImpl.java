@@ -2,7 +2,6 @@ package io.github.kstnnn.ai.interview.service.service.impl;
 
 import io.github.kstnnn.ai.interview.service.model.InterviewSession;
 import io.github.kstnnn.ai.interview.service.model.InterviewSessionTechnology;
-import io.github.kstnnn.ai.interview.service.model.Technology;
 import io.github.kstnnn.ai.interview.service.repository.InterviewSessionTechnologyRepository;
 import io.github.kstnnn.ai.interview.service.repository.TechnologyRepository;
 import io.github.kstnnn.ai.interview.service.service.InterviewSessionTechnologyService;
@@ -18,12 +17,15 @@ public class InterviewSessionTechnologyServiceImpl implements InterviewSessionTe
   private final InterviewSessionTechnologyRepository iRepository;
 
   @Override
-  public void saveSessionTechnologies(List<Technology> technologies, InterviewSession session) {
-    var technologyKeys = technologies.stream().map(Technology::getKey).toList();
+  public void saveSessionTechnologies(List<String> technologyKeys, InterviewSession session) {
     var technologyIds = tRepository.findIdsByKeys(technologyKeys);
-    var sessionTechnologies =
+    List<InterviewSessionTechnology> sessionTechnologies =
         technologyIds.stream()
-            .map(id -> InterviewSessionTechnology.builder().id(id).session(session).build())
+            .map(
+                id -> {
+                  var tech = tRepository.getReferenceById(id);
+                  return new InterviewSessionTechnology(null, session, tech);
+                })
             .toList();
     iRepository.saveAll(sessionTechnologies);
   }

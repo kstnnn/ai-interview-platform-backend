@@ -47,7 +47,7 @@ public class AnswerEvaluation {
   @Column(columnDefinition = "text")
   private String feedback;
 
-  @Column(name = "knowledge_gaps_json", columnDefinition = "jsonb")
+  @Column(name = "knowledge_gaps_json", columnDefinition = "text")
   private String knowledgeGapsJson;
 
   @Column(name = "evaluated_at", nullable = false)

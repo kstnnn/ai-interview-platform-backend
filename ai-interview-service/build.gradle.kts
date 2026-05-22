@@ -26,6 +26,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.ai:spring-ai-advisors-vector-store")
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
+	implementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server")
 	// implementation("org.springframework.ai:spring-ai-starter-model-chat-memory-repository-redis")
 	implementation("org.springframework.ai:spring-ai-starter-model-transformers")
 	implementation("org.springframework.ai:spring-ai-starter-vector-store-chroma")

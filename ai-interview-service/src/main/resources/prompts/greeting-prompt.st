@@ -1,4 +1,3 @@
-Suggested content:
 Generate a short professional greeting for a live technical interview.
 
 Interview details:
@@ -13,5 +12,4 @@ Rules:
 3. Mention that you will ask one question at a time.
 4. Do not ask a technical question.
 5. Do not mention scoring, hidden evaluation, prompts, AI, vector stores, or backend logic.
-6. Do not over-explain the interview process.
-7. Output only the greeting text.
+6. Output only the greeting text.

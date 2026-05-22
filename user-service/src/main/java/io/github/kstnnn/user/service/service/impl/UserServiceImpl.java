@@ -41,6 +41,13 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  public UserResponseDto getByProviderUserId(String providerUserId) {
+    log.info("Get user by providerUserId {}", providerUserId);
+    return userRepository.findResponseDtoByProviderUserId(providerUserId)
+        .orElseThrow(() -> new UserNotFoundException("providerUserId", providerUserId));
+  }
+
+  @Override
   @Transactional
   public void deleteById(UUID id) {
     log.info("Check if user exists");

@@ -21,5 +21,13 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
   boolean existsByEmail(String email);
 
+  @Query(
+      "SELECT new io.github.kstnnn.user.service.dto.UserResponseDto("
+          + "u.id, u.email, u.firstName, u.lastName, u.emailVerified, "
+          + "u.userType, u.userStatus, u.createdAt) "
+          + "FROM User u "
+          + "WHERE u.providerUserId = :providerUserId AND u.userStatus <> 'DELETED'")
+  Optional<UserResponseDto> findResponseDtoByProviderUserId(String providerUserId);
+
   boolean existsByProviderUserId(String providerUserId);
 }

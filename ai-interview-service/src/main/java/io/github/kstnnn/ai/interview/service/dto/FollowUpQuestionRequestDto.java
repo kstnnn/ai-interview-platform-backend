@@ -14,6 +14,6 @@ public record FollowUpQuestionRequestDto(
   }
 
   public String interviewLanguage() {
-    return interviewLanguage == null || interviewLanguage.isBlank() ? "English" : interviewLanguage;
+    return interviewLanguage == null || interviewLanguage.isBlank() ? "Russian" : interviewLanguage;
   }
 }

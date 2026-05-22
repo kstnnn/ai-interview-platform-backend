@@ -18,7 +18,7 @@ Evaluation rules:
 6. Ask for a follow-up only when one focused clarification could reasonably reveal whether the candidate understands the missing concept.
 7. Do not reveal the full expected answer in candidateFeedback.
 
-Score each category from 1 to 5:
+Score each category from 0.0 to 1.0:
 - correctnessScore: factual correctness and coverage of key points.
 - depthScore: understanding of why/how the concept works.
 - practicalScore: ability to apply the concept in real scenarios.
@@ -29,15 +29,15 @@ Set confidence from 0.0 to 1.0 based on how clear the candidate answer is.
 Output valid JSON only. Do not wrap it in Markdown. Do not add commentary outside JSON.
 
 JSON schema:
-{
-  "correctnessScore": 1,
-  "depthScore": 1,
-  "practicalScore": 1,
-  "totalScore": 1,
-  "confidence": 0.0,
+{{
+  "correctnessScore": 0.7,
+  "depthScore": 0.5,
+  "practicalScore": 0.6,
+  "totalScore": 0.6,
+  "confidence": 0.8,
   "knowledgeGaps": ["missing or weak concept"],
   "strengths": ["correctly covered concept"],
   "shouldAskFollowUp": true,
   "followUpFocus": "one specific concept to clarify, or null",
   "candidateFeedback": "Brief feedback for the candidate, 1-2 sentences max."
-}
+}}

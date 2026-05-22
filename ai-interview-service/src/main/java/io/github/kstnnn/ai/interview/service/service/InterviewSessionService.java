@@ -4,9 +4,7 @@ import io.github.kstnnn.ai.interview.service.dto.StartInterviewSessionDto;
 import java.util.UUID;
 
 public interface InterviewSessionService {
-  void initSession(StartInterviewSessionDto sessionDto);
+  UUID initSession(StartInterviewSessionDto sessionDto);
 
-  void startSession(UUID sessionId);
-
-  void stopSession(UUID sessionId);
+  void cancelSession(UUID sessionId);
 }

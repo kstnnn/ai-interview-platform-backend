@@ -27,30 +27,21 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
   private final PlannedSessionQuestionService pSessionQuestionService;
   private final InterviewSessionRepository iSessionRepository;
 
+  @Transactional
   @Override
-  public void initSession(StartInterviewSessionDto sessionDto) {
+  public UUID initSession(StartInterviewSessionDto sessionDto) {
     var targetConfidence = estimateTargetConfidence(sessionDto.interviewLevel());
-    // Creating new session
-    var interviewSession = createInterviewSession(sessionDto, targetConfidence);
-    // Saving technologies of session
-    iSessionTechnologyService.saveSessionTechnologies(sessionDto.technologies(), interviewSession);
-    // Getting base questions
-    var questions = qService.getBaseQuestions(sessionDto.technologies());
-    // Saving base questions of Interview
+    var interviewSession = iSessionRepository.save(createInterviewSession(sessionDto, targetConfidence));
+    iSessionTechnologyService.saveSessionTechnologies(sessionDto.technologyKeys(), interviewSession);
+    var questions = qService.getBaseQuestions(sessionDto.technologyKeys());
     pSessionQuestionService.savePlannedQuestions(questions, interviewSession);
+    return interviewSession.getId();
   }
 
   @Transactional
   @Override
-  public void startSession(UUID sessionId) {
-    var interviewSession = iSessionRepository.findById(sessionId).orElseThrow();
-    interviewSession.setStatus(InterviewSessionStatus.IN_PROGRESS);
-  }
-
-  @Override
-  @Transactional
-  public void stopSession(UUID sessionId) {
-    var session = iSessionRepository.getReferenceById(sessionId);
+  public void cancelSession(UUID sessionId) {
+    var session = iSessionRepository.findById(sessionId).orElseThrow();
     session.setStatus(InterviewSessionStatus.CANCELLED);
     session.setFinishedAt(Instant.now());
   }
