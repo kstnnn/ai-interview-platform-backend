@@ -10,6 +10,8 @@ public interface SessionQuestionRepository extends ListCrudRepository<SessionQue
 
   List<SessionQuestion> findBySessionIdAndParentQuestionIsNullOrderByRoundNumberAsc(UUID sessionId);
 
+  List<SessionQuestion> findBySessionIdOrderByRoundNumberAsc(UUID sessionId);
+
   List<SessionQuestion> findByParentQuestionId(UUID parentQuestionId);
 
   Optional<SessionQuestion> findBySessionIdAndRoundNumber(UUID sessionId, int roundNumber);

@@ -1,16 +1,21 @@
 package io.github.kstnnn.ai.interview.service.service.impl;
 
+import io.github.kstnnn.ai.interview.service.dto.InterviewHistoryDto;
 import io.github.kstnnn.ai.interview.service.dto.StartInterviewSessionDto;
 import io.github.kstnnn.ai.interview.service.model.InterviewLevel;
 import io.github.kstnnn.ai.interview.service.model.InterviewSession;
 import io.github.kstnnn.ai.interview.service.model.InterviewSessionStatus;
 import io.github.kstnnn.ai.interview.service.repository.InterviewSessionRepository;
+import io.github.kstnnn.ai.interview.service.repository.InterviewSessionTechnologyRepository;
+import io.github.kstnnn.ai.interview.service.repository.SessionQuestionRepository;
 import io.github.kstnnn.ai.interview.service.service.InterviewSessionService;
 import io.github.kstnnn.ai.interview.service.service.InterviewSessionTechnologyService;
 import io.github.kstnnn.ai.interview.service.service.PlannedSessionQuestionService;
 import io.github.kstnnn.ai.interview.service.service.QuestionService;
+import io.github.kstnnn.ai.interview.service.service.TopicStateService;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +31,9 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
   private final QuestionService qService;
   private final PlannedSessionQuestionService pSessionQuestionService;
   private final InterviewSessionRepository iSessionRepository;
+  private final InterviewSessionTechnologyRepository iSessionTechnologyRepository;
+  private final SessionQuestionRepository sQuestionRepository;
+  private final TopicStateService topicStateService;
 
   @Transactional
   @Override
@@ -36,6 +44,14 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     var questions = qService.getBaseQuestions(sessionDto.technologyKeys());
     pSessionQuestionService.savePlannedQuestions(questions, interviewSession);
     return interviewSession.getId();
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public List<InterviewHistoryDto> getLatestSessions(UUID userId) {
+    return iSessionRepository.findTop10ByUserIdOrderByCreatedAtDesc(userId).stream()
+        .map(this::toHistoryDto)
+        .toList();
   }
 
   @Transactional
@@ -57,6 +73,20 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         .minQuestions(sessionDto.minQuestions())
         .maxQuestions(sessionDto.maxQuestions())
         .build();
+  }
+
+  private InterviewHistoryDto toHistoryDto(InterviewSession session) {
+    var sessionId = session.getId();
+    return new InterviewHistoryDto(
+        sessionId,
+        session.getStatus(),
+        session.getInterviewLevel(),
+        session.getInterviewLanguage(),
+        iSessionTechnologyRepository.findTechnologyKeysBySessionId(sessionId),
+        topicStateService.calculateSessionConfidence(sessionId),
+        session.getStartedAt(),
+        session.getFinishedAt(),
+        sQuestionRepository.countBySessionId(sessionId));
   }
 
   private BigDecimal estimateTargetConfidence(InterviewLevel interviewLevel) {
