@@ -3,6 +3,7 @@ package io.github.kstnnn.ai.interview.service.service.impl;
 import io.github.kstnnn.ai.interview.service.dto.InterviewQuestionReportDto;
 import io.github.kstnnn.ai.interview.service.dto.InterviewReportDto;
 import io.github.kstnnn.ai.interview.service.model.AnswerEvaluation;
+import io.github.kstnnn.ai.interview.service.model.InterviewSessionType;
 import io.github.kstnnn.ai.interview.service.model.SessionAnswer;
 import io.github.kstnnn.ai.interview.service.model.SessionQuestion;
 import io.github.kstnnn.ai.interview.service.repository.AnswerEvaluationRepository;
@@ -30,8 +31,14 @@ public class InterviewReportServiceImpl implements InterviewReportService {
 
   @Transactional(readOnly = true)
   @Override
-  public InterviewReportDto getReport(UUID sessionId) {
+  public InterviewReportDto getMockReport(UUID sessionId, UUID userId) {
     var session = iSessionRepository.findById(sessionId).orElseThrow();
+    if (!session.getUserId().equals(userId)) {
+      throw new IllegalArgumentException("Interview session does not belong to current user");
+    }
+    if (session.getSessionType() != InterviewSessionType.MOCK) {
+      throw new IllegalStateException("Candidate report is available only for mock interviews");
+    }
     var topics = topicStateService.getTopicSummaries(sessionId);
     var questions =
         sQuestionRepository.findBySessionIdOrderByRoundNumberAsc(sessionId).stream()

@@ -34,8 +34,6 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/v1/interviews")
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/interviews/*/report")
-                    .permitAll()
                     .anyRequest()
                     .authenticated())
         .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}));

@@ -1,10 +1,12 @@
 package io.github.kstnnn.ai.interview.service.service.impl;
 
 import io.github.kstnnn.ai.interview.service.dto.InterviewHistoryDto;
+import io.github.kstnnn.ai.interview.service.dto.InterviewSessionSummaryDto;
 import io.github.kstnnn.ai.interview.service.dto.StartInterviewSessionDto;
 import io.github.kstnnn.ai.interview.service.model.InterviewLevel;
 import io.github.kstnnn.ai.interview.service.model.InterviewSession;
 import io.github.kstnnn.ai.interview.service.model.InterviewSessionStatus;
+import io.github.kstnnn.ai.interview.service.model.InterviewSessionType;
 import io.github.kstnnn.ai.interview.service.repository.InterviewSessionRepository;
 import io.github.kstnnn.ai.interview.service.repository.InterviewSessionTechnologyRepository;
 import io.github.kstnnn.ai.interview.service.repository.SessionQuestionRepository;
@@ -55,6 +57,16 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         .toList();
   }
 
+  @Transactional(readOnly = true)
+  @Override
+  public InterviewSessionSummaryDto getSessionSummary(UUID sessionId, UUID userId) {
+    var session = iSessionRepository.findById(sessionId).orElseThrow();
+    if (!session.getUserId().equals(userId)) {
+      throw new IllegalArgumentException("Interview session does not belong to current user");
+    }
+    return toSummaryDto(session);
+  }
+
   @Transactional
   @Override
   public void cancelSession(UUID sessionId) {
@@ -69,6 +81,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         .userId(sessionDto.userId())
         .vacancyId(sessionDto.vacancyId())
         .applicationId(sessionDto.applicationId())
+        .sessionType(resolveSessionType(sessionDto))
         .status(InterviewSessionStatus.CREATED)
         .interviewLevel(sessionDto.interviewLevel())
         .interviewLanguage(resolveInterviewLanguage(sessionDto.interviewLanguage()))
@@ -77,6 +90,12 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         .maxQuestions(sessionDto.maxQuestions())
         .maxFollowUpsPerPrimary(resolveMaxFollowUpsPerPrimary(sessionDto.maxFollowUpsPerPrimary()))
         .build();
+  }
+
+  private InterviewSessionType resolveSessionType(StartInterviewSessionDto sessionDto) {
+    return sessionDto.applicationId() == null
+        ? InterviewSessionType.MOCK
+        : InterviewSessionType.VACANCY_APPLICATION;
   }
 
   private Integer resolveMaxFollowUpsPerPrimary(Integer maxFollowUpsPerPrimary) {
@@ -90,6 +109,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     var sessionId = session.getId();
     return new InterviewHistoryDto(
         sessionId,
+        session.getSessionType(),
         session.getStatus(),
         session.getInterviewLevel(),
         session.getInterviewLanguage(),
@@ -98,6 +118,19 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         session.getStartedAt(),
         session.getFinishedAt(),
         sQuestionRepository.countBySessionId(sessionId));
+  }
+
+  private InterviewSessionSummaryDto toSummaryDto(InterviewSession session) {
+    return new InterviewSessionSummaryDto(
+        session.getId(),
+        session.getSessionType(),
+        session.getStatus(),
+        session.getInterviewLevel(),
+        session.getInterviewLanguage(),
+        session.getVacancyId(),
+        session.getApplicationId(),
+        session.getStartedAt(),
+        session.getFinishedAt());
   }
 
   private BigDecimal estimateTargetConfidence(InterviewLevel interviewLevel) {
