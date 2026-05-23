@@ -1,8 +1,14 @@
 package io.github.kstnnn.organization.service.controller;
 
 import io.github.kstnnn.organization.service.dto.PublicVacancyResponse;
+import io.github.kstnnn.organization.service.dto.VacancyApplicationResponse;
+import io.github.kstnnn.organization.service.dto.VacancyApplyRequest;
+import io.github.kstnnn.organization.service.dto.VacancyQuestionRequest;
+import io.github.kstnnn.organization.service.dto.VacancyQuestionResponse;
 import io.github.kstnnn.organization.service.dto.VacancyResponse;
 import io.github.kstnnn.organization.service.dto.VacancyUpdateRequest;
+import io.github.kstnnn.organization.service.service.VacancyApplicationService;
+import io.github.kstnnn.organization.service.service.VacancyQuestionService;
 import io.github.kstnnn.organization.service.service.VacancyService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -10,12 +16,15 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -24,6 +33,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class VacancyController {
 
   private final VacancyService vacancyService;
+  private final VacancyQuestionService vacancyQuestionService;
+  private final VacancyApplicationService vacancyApplicationService;
 
   @GetMapping("/public")
   public List<PublicVacancyResponse> getPublishedVacancies() {
@@ -33,6 +44,15 @@ public class VacancyController {
   @GetMapping("/public/{vacancyId}")
   public PublicVacancyResponse getPublishedById(@PathVariable UUID vacancyId) {
     return vacancyService.getPublishedById(vacancyId);
+  }
+
+  @PostMapping("/public/{vacancyId}/applications")
+  @ResponseStatus(HttpStatus.CREATED)
+  public VacancyApplicationResponse apply(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID vacancyId,
+      @RequestBody(required = false) VacancyApplyRequest request) {
+    return vacancyApplicationService.apply(jwt, vacancyId, request);
   }
 
   @GetMapping("/{vacancyId}")
@@ -61,5 +81,42 @@ public class VacancyController {
   @PostMapping("/{vacancyId}/close")
   public VacancyResponse close(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID vacancyId) {
     return vacancyService.close(jwt, vacancyId);
+  }
+
+  @PostMapping("/{vacancyId}/questions")
+  @ResponseStatus(HttpStatus.CREATED)
+  public VacancyQuestionResponse createQuestion(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID vacancyId,
+      @Valid @RequestBody VacancyQuestionRequest request) {
+    return vacancyQuestionService.create(jwt, vacancyId, request);
+  }
+
+  @GetMapping("/{vacancyId}/questions")
+  public List<VacancyQuestionResponse> getQuestions(
+      @AuthenticationPrincipal Jwt jwt, @PathVariable UUID vacancyId) {
+    return vacancyQuestionService.list(jwt, vacancyId);
+  }
+
+  @PatchMapping("/{vacancyId}/questions/{questionId}")
+  public VacancyQuestionResponse updateQuestion(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID vacancyId,
+      @PathVariable UUID questionId,
+      @Valid @RequestBody VacancyQuestionRequest request) {
+    return vacancyQuestionService.update(jwt, vacancyId, questionId, request);
+  }
+
+  @DeleteMapping("/{vacancyId}/questions/{questionId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteQuestion(
+      @AuthenticationPrincipal Jwt jwt, @PathVariable UUID vacancyId, @PathVariable UUID questionId) {
+    vacancyQuestionService.delete(jwt, vacancyId, questionId);
+  }
+
+  @GetMapping("/{vacancyId}/applications")
+  public List<VacancyApplicationResponse> getApplications(
+      @AuthenticationPrincipal Jwt jwt, @PathVariable UUID vacancyId) {
+    return vacancyApplicationService.getVacancyApplications(jwt, vacancyId);
   }
 }

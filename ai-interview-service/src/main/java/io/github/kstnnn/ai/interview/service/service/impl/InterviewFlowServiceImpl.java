@@ -12,6 +12,7 @@ import io.github.kstnnn.ai.interview.service.model.InterviewSession;
 import io.github.kstnnn.ai.interview.service.model.InterviewSessionStatus;
 import io.github.kstnnn.ai.interview.service.model.PlannedStatus;
 import io.github.kstnnn.ai.interview.service.model.Question;
+import io.github.kstnnn.ai.interview.service.model.QuestionSourceType;
 import io.github.kstnnn.ai.interview.service.model.QuestionType;
 import io.github.kstnnn.ai.interview.service.model.SelectionReason;
 import io.github.kstnnn.ai.interview.service.model.SessionAnswer;
@@ -108,9 +109,7 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
         normalizeEvaluation(
             aService.evaluateAnswer(
                 sessionQuestion.getQuestionTextSnapshot(),
-                sessionQuestion.getQuestion() != null
-                    ? sessionQuestion.getQuestion().getExpectedAnswer()
-                    : "",
+                resolveExpectedAnswer(sessionQuestion),
                 dto.answerText(),
                 resolveInterviewLanguage(session)));
 
@@ -187,33 +186,36 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
 
     var planned =
         pQuestionRepository
-            .findFirstByInterviewSessionIdAndPlannedStatus(sessionId, PlannedStatus.PLANNED)
+            .findFirstByInterviewSessionIdAndPlannedStatusOrderByDisplayOrderAsc(
+                sessionId, PlannedStatus.PLANNED)
             .orElseThrow(
                 () -> new IllegalStateException("No planned questions for session " + sessionId));
 
     planned.setPlannedStatus(PlannedStatus.ASKED);
     pQuestionRepository.save(planned);
 
-    var q = planned.getQuestion();
     var askDto =
         new AskQuestionDto(
-            q.getQuestionText(),
-            q.getExpectedAnswer(),
-            q.getTopic(),
-            q.getSubtopic(),
-            q.getDifficulty(),
+            planned.getQuestionTextSnapshot(),
+            planned.getExpectedAnswerSnapshot(),
+            planned.getTopic(),
+            planned.getSubtopic(),
+            planned.getDifficulty(),
             interviewLanguage);
 
     var questionText = aService.askQuestion(askDto);
 
     var sessionQuestion = new SessionQuestion();
     sessionQuestion.setSession(session);
-    sessionQuestion.setQuestion(q);
+    sessionQuestion.setQuestion(planned.getQuestion());
     sessionQuestion.setRoundNumber(1);
-    sessionQuestion.setTopic(q.getTopic());
-    sessionQuestion.setSubtopic(q.getSubtopic());
-    sessionQuestion.setDifficulty(q.getDifficulty());
+    sessionQuestion.setTopic(planned.getTopic());
+    sessionQuestion.setSubtopic(planned.getSubtopic());
+    sessionQuestion.setDifficulty(planned.getDifficulty());
     sessionQuestion.setQuestionTextSnapshot(questionText);
+    sessionQuestion.setExpectedAnswerSnapshot(planned.getExpectedAnswerSnapshot());
+    sessionQuestion.setSourceType(planned.getSourceType());
+    sessionQuestion.setExternalQuestionId(planned.getExternalQuestionId());
     sessionQuestion.setSelectionReason(SelectionReason.BASELINE_COVERAGE);
     sessionQuestion.setQuestionType(QuestionType.PRIMARY);
     sQuestionRepository.save(sessionQuestion);
@@ -308,6 +310,8 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
     sessionQuestion.setSubtopic(q.getSubtopic());
     sessionQuestion.setDifficulty(q.getDifficulty());
     sessionQuestion.setQuestionTextSnapshot(questionText);
+    sessionQuestion.setExpectedAnswerSnapshot(q.getExpectedAnswer());
+    sessionQuestion.setSourceType(QuestionSourceType.QUESTION_BANK);
     sessionQuestion.setSelectionReason(SelectionReason.WEAK_TOPIC_REINFORCEMENT);
     sessionQuestion.setQuestionType(QuestionType.PRIMARY);
     sQuestionRepository.save(sessionQuestion);
@@ -319,7 +323,8 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
     var session = loadAndValidateInProgress(sessionId);
     var planned =
         pQuestionRepository
-            .findFirstByInterviewSessionIdAndPlannedStatus(sessionId, PlannedStatus.PLANNED)
+            .findFirstByInterviewSessionIdAndPlannedStatusOrderByDisplayOrderAsc(
+                sessionId, PlannedStatus.PLANNED)
             .orElse(null);
 
     if (planned == null) {
@@ -329,28 +334,30 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
     planned.setPlannedStatus(PlannedStatus.ASKED);
     pQuestionRepository.save(planned);
 
-    var q = planned.getQuestion();
     var nextRound = getLastRoundNumber(sessionId) + 1;
 
     var askDto =
         new AskQuestionDto(
-            q.getQuestionText(),
-            q.getExpectedAnswer(),
-            q.getTopic(),
-            q.getSubtopic(),
-            q.getDifficulty(),
+            planned.getQuestionTextSnapshot(),
+            planned.getExpectedAnswerSnapshot(),
+            planned.getTopic(),
+            planned.getSubtopic(),
+            planned.getDifficulty(),
             resolveInterviewLanguage(session));
 
     var questionText = aService.askQuestion(askDto);
 
     var sessionQuestion = new SessionQuestion();
     sessionQuestion.setSession(session);
-    sessionQuestion.setQuestion(q);
+    sessionQuestion.setQuestion(planned.getQuestion());
     sessionQuestion.setRoundNumber(nextRound);
-    sessionQuestion.setTopic(q.getTopic());
-    sessionQuestion.setSubtopic(q.getSubtopic());
-    sessionQuestion.setDifficulty(q.getDifficulty());
+    sessionQuestion.setTopic(planned.getTopic());
+    sessionQuestion.setSubtopic(planned.getSubtopic());
+    sessionQuestion.setDifficulty(planned.getDifficulty());
     sessionQuestion.setQuestionTextSnapshot(questionText);
+    sessionQuestion.setExpectedAnswerSnapshot(planned.getExpectedAnswerSnapshot());
+    sessionQuestion.setSourceType(planned.getSourceType());
+    sessionQuestion.setExternalQuestionId(planned.getExternalQuestionId());
     sessionQuestion.setSelectionReason(SelectionReason.BASELINE_COVERAGE);
     sessionQuestion.setQuestionType(QuestionType.PRIMARY);
     sQuestionRepository.save(sessionQuestion);
@@ -374,6 +381,14 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
     return currentFollowUps < maxFollowUps;
   }
 
+  private String resolveExpectedAnswer(SessionQuestion sessionQuestion) {
+    if (sessionQuestion.getExpectedAnswerSnapshot() != null
+        && !sessionQuestion.getExpectedAnswerSnapshot().isBlank()) {
+      return sessionQuestion.getExpectedAnswerSnapshot();
+    }
+    return sessionQuestion.getQuestion() != null ? sessionQuestion.getQuestion().getExpectedAnswer() : "";
+  }
+
   private NextQuestionResult generateFollowUp(
       UUID sessionId, SessionQuestion primaryQuestion, EvaluationResultDto evaluation) {
     var session = loadAndValidateInProgress(sessionId);
@@ -381,9 +396,7 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
     var followUpDto =
         new FollowUpQuestionDto(
             primaryQuestion.getQuestionTextSnapshot(),
-            primaryQuestion.getQuestion() != null
-                ? primaryQuestion.getQuestion().getExpectedAnswer()
-                : "",
+            resolveExpectedAnswer(primaryQuestion),
             "",
             evaluation.knowledgeGaps(),
             resolveInterviewLanguage(session));
@@ -398,6 +411,8 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
     sessionQuestion.setSubtopic(primaryQuestion.getSubtopic());
     sessionQuestion.setDifficulty(primaryQuestion.getDifficulty());
     sessionQuestion.setQuestionTextSnapshot(followUpText);
+    sessionQuestion.setExpectedAnswerSnapshot(resolveExpectedAnswer(primaryQuestion));
+    sessionQuestion.setSourceType(QuestionSourceType.AI_FOLLOW_UP);
     sessionQuestion.setSelectionReason(SelectionReason.FOLLOW_UP_CLARIFICATION);
     sessionQuestion.setQuestionType(QuestionType.FOLLOW_UP);
     sQuestionRepository.save(sessionQuestion);

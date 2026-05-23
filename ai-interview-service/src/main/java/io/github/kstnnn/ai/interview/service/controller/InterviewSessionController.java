@@ -69,11 +69,14 @@ public class InterviewSessionController {
     }
     return new StartInterviewSessionDto(
         userLookupService.resolveInternalUserId(jwt.getSubject()),
+        dto.vacancyId(),
+        dto.applicationId(),
         dto.minQuestions(),
         dto.maxQuestions(),
         dto.interviewLevel(),
         dto.interviewLanguage(),
-        dto.technologyKeys());
+        dto.technologyKeys(),
+        dto.customQuestions());
   }
 
   private String resolveInterviewLanguage(String interviewLanguage) {

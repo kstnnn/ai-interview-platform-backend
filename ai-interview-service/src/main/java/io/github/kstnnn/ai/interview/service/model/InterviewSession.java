@@ -32,6 +32,12 @@ public class InterviewSession {
   @Column(name = "user_id", nullable = false)
   private UUID userId;
 
+  @Column(name = "vacancy_id")
+  private UUID vacancyId;
+
+  @Column(name = "application_id")
+  private UUID applicationId;
+
   @Column(name = "min_questions", nullable = false)
   private Integer minQuestions;
 

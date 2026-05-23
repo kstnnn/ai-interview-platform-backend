@@ -35,7 +35,17 @@ public class GlobalExceptionHandler {
     return Map.of("message", ex.getMessage());
   }
 
-  @ExceptionHandler({AccessDeniedException.class, BusinessUserRequiredException.class})
+  @ExceptionHandler(DuplicateApplicationException.class)
+  @ResponseStatus(HttpStatus.CONFLICT)
+  Map<String, String> handleDuplicateApplication(DuplicateApplicationException ex) {
+    return Map.of("message", ex.getMessage());
+  }
+
+  @ExceptionHandler({
+    AccessDeniedException.class,
+    BusinessUserRequiredException.class,
+    CandidateUserRequiredException.class
+  })
   @ResponseStatus(HttpStatus.FORBIDDEN)
   Map<String, String> handleForbidden(RuntimeException ex) {
     return Map.of("message", ex.getMessage());

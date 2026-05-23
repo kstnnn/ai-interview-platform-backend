@@ -60,6 +60,7 @@ public class InterviewReportServiceImpl implements InterviewReportService {
         question.getRoundNumber(),
         question.getRoundNumber(),
         question.getQuestionType().toString(),
+        question.getSourceType().toString(),
         question.getTopic(),
         question.getSubtopic(),
         question.getDifficulty(),

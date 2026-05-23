@@ -42,7 +42,8 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     var interviewSession = iSessionRepository.save(createInterviewSession(sessionDto, targetConfidence));
     iSessionTechnologyService.saveSessionTechnologies(sessionDto.technologyKeys(), interviewSession);
     var questions = qService.getBaseQuestions(sessionDto.technologyKeys());
-    pSessionQuestionService.savePlannedQuestions(questions, interviewSession);
+    pSessionQuestionService.savePlannedQuestions(
+        sessionDto.customQuestions(), questions, interviewSession);
     return interviewSession.getId();
   }
 
@@ -66,6 +67,8 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
       StartInterviewSessionDto sessionDto, BigDecimal targetConfidence) {
     return InterviewSession.builder()
         .userId(sessionDto.userId())
+        .vacancyId(sessionDto.vacancyId())
+        .applicationId(sessionDto.applicationId())
         .status(InterviewSessionStatus.CREATED)
         .interviewLevel(sessionDto.interviewLevel())
         .interviewLanguage(resolveInterviewLanguage(sessionDto.interviewLanguage()))

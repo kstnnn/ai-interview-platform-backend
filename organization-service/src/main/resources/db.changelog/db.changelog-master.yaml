@@ -2,3 +2,6 @@ databaseChangeLog:
   - include:
       file: changesets/001-create-organization-domain.sql
       relativeToChangelogFile: true
+  - include:
+      file: changesets/002-add-vacancy-questions-and-applications.sql
+      relativeToChangelogFile: true
