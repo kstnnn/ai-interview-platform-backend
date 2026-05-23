@@ -1,5 +1,6 @@
-package io.github.kstnnn.user.service.config;
+package io.github.kstnnn.organization.service.config;
 
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -13,9 +14,9 @@ public class CorsConfig {
   CorsConfigurationSource corsConfigurationSource() {
     var source = new UrlBasedCorsConfigurationSource();
     var config = new CorsConfiguration();
-    config.setAllowedOrigins(java.util.List.of("http://localhost:5173"));
-    config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-    config.setAllowedHeaders(java.util.List.of("*"));
+    config.setAllowedOrigins(List.of("http://localhost:5173"));
+    config.setAllowedMethods(List.of("GET", "POST", "PATCH", "DELETE", "OPTIONS"));
+    config.setAllowedHeaders(List.of("*"));
     config.setAllowCredentials(true);
     source.registerCorsConfiguration("/**", config);
     return source;
