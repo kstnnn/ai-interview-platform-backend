@@ -10,16 +10,20 @@ import io.github.kstnnn.ai.interview.service.model.InterviewSessionStatus;
 import io.github.kstnnn.ai.interview.service.model.InterviewSessionType;
 import io.github.kstnnn.ai.interview.service.model.LearningResource;
 import io.github.kstnnn.ai.interview.service.repository.InterviewSessionRepository;
+import io.github.kstnnn.ai.interview.service.repository.InterviewSessionTechnologyRepository;
 import io.github.kstnnn.ai.interview.service.repository.LearningResourceRepository;
+import io.github.kstnnn.ai.interview.service.repository.LearningResourceTagRepository;
 import io.github.kstnnn.ai.interview.service.service.LearningRoadmapService;
 import io.github.kstnnn.ai.interview.service.service.TopicStateService;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,8 +34,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class LearningRoadmapServiceImpl implements LearningRoadmapService {
 
   private final InterviewSessionRepository interviewSessionRepository;
+  private final InterviewSessionTechnologyRepository interviewSessionTechnologyRepository;
   private final TopicStateService topicStateService;
   private final LearningResourceRepository learningResourceRepository;
+  private final LearningResourceTagRepository learningResourceTagRepository;
 
   @Override
   @Transactional(readOnly = true)
@@ -48,11 +54,12 @@ public class LearningRoadmapServiceImpl implements LearningRoadmapService {
     }
 
     var lang = normalizeLanguage(language);
+    var technologyKeys = technologyKeysForSession(sessionId);
     var topics =
         topicStateService.getTopicSummaries(sessionId).stream()
             .sorted(Comparator.comparing(topic -> topic.avgScore()))
             .limit(5)
-            .map(topic -> toTopic(lang, topic.topic(), topic.avgScore().doubleValue()))
+            .map(topic -> toTopic(lang, topic.topic(), topic.avgScore().doubleValue(), technologyKeys))
             .toList();
     return new LearningRoadmapDto(sessionId, lang, summary(lang, topics), topics);
   }
@@ -66,6 +73,7 @@ public class LearningRoadmapServiceImpl implements LearningRoadmapService {
             .findTop10ByUserIdAndSessionTypeAndStatusOrderByFinishedAtDesc(
                 userId, InterviewSessionType.MOCK, InterviewSessionStatus.COMPLETED);
     var sourceSessionIds = sessions.stream().map(InterviewSession::getId).toList();
+    var technologyKeys = technologyKeysForSessions(sourceSessionIds);
     if (sessions.isEmpty()) {
       return new UserLearningRoadmapDto(
           userId, lang, Instant.now(), List.of(), emptyUserSummary(lang), List.of());
@@ -80,7 +88,9 @@ public class LearningRoadmapServiceImpl implements LearningRoadmapService {
 
     var topics =
         currentScores.entrySet().stream()
-            .map(entry -> toUserTopic(lang, entry.getValue(), previousScores.get(entry.getKey())))
+            .map(
+                entry ->
+                    toUserTopic(lang, entry.getValue(), previousScores.get(entry.getKey()), technologyKeys))
             .sorted(
                 Comparator.comparing(UserLearningRoadmapTopicDto::priority, this::comparePriority)
                     .thenComparing(UserLearningRoadmapTopicDto::currentScore))
@@ -96,17 +106,21 @@ public class LearningRoadmapServiceImpl implements LearningRoadmapService {
         topics);
   }
 
-  private LearningRoadmapTopicDto toTopic(String language, String topic, double score) {
+  private LearningRoadmapTopicDto toTopic(
+      String language, String topic, double score, Set<String> technologyKeys) {
     return new LearningRoadmapTopicDto(
         topic,
         score,
         reason(language, topic, score),
         actions(language, topic),
-        resources(topic, language));
+        resources(topic, language, technologyKeys));
   }
 
   private UserLearningRoadmapTopicDto toUserTopic(
-      String language, TopicScore currentScore, TopicScore previousScore) {
+      String language,
+      TopicScore currentScore,
+      TopicScore previousScore,
+      Set<String> technologyKeys) {
     var current = currentScore.average();
     var previous = previousScore != null ? previousScore.average() : null;
     var trend = trend(current, previous);
@@ -119,7 +133,7 @@ public class LearningRoadmapServiceImpl implements LearningRoadmapService {
         priority,
         userReason(language, currentScore.displayTopic, current, previous, trend),
         actions(language, currentScore.displayTopic),
-        resources(currentScore.displayTopic, language));
+        resources(currentScore.displayTopic, language, technologyKeys));
   }
 
   private Map<String, TopicScore> aggregateTopicScores(List<InterviewSession> sessions) {
@@ -134,19 +148,138 @@ public class LearningRoadmapServiceImpl implements LearningRoadmapService {
     return scores;
   }
 
-  private List<LearningResourceDto> resources(String topic, String language) {
+  private List<LearningResourceDto> resources(
+      String topic, String language, Set<String> technologyKeys) {
     var normalizedTopic = normalizeTopic(topic);
+    var resourceIdsByTag = matchingResourceIdsByTag(normalizedTopic);
+    var allowedFamilies = allowedTechnologyFamilies(technologyKeys);
     return learningResourceRepository.findByActiveTrueOrderByTopicAscTitleAsc().stream()
-        .filter(resource -> matchesTopic(resource, normalizedTopic))
-        .sorted(Comparator.comparing((LearningResource r) -> languagePriority(r, language)))
-        .limit(4)
+        .filter(resource -> isAllowedForTechnologyContext(resource, allowedFamilies))
+        .filter(resource -> matchesTopic(resource, normalizedTopic, resourceIdsByTag))
+        .sorted(
+            Comparator.comparing((LearningResource r) -> matchPriority(r, normalizedTopic, resourceIdsByTag))
+                .thenComparing(r -> languagePriority(r, language))
+                .thenComparing(LearningResource::getTitle))
+        .limit(3)
         .map(r -> new LearningResourceDto(r.getTitle(), r.getUrl(), r.getType().name(), r.getLanguage()))
         .toList();
   }
 
-  private boolean matchesTopic(LearningResource resource, String topic) {
+  private Set<String> technologyKeysForSession(UUID sessionId) {
+    return interviewSessionTechnologyRepository.findTechnologyKeysBySessionId(sessionId).stream()
+        .map(this::normalizeTopic)
+        .collect(java.util.stream.Collectors.toSet());
+  }
+
+  private Set<String> technologyKeysForSessions(List<UUID> sessionIds) {
+    return sessionIds.stream()
+        .flatMap(sessionId -> technologyKeysForSession(sessionId).stream())
+        .collect(java.util.stream.Collectors.toSet());
+  }
+
+  private boolean isAllowedForTechnologyContext(
+      LearningResource resource, Set<String> allowedFamilies) {
+    var family = resourceFamily(resource);
+    return family.equals("general") || allowedFamilies.contains(family);
+  }
+
+  private Set<String> allowedTechnologyFamilies(Set<String> technologyKeys) {
+    var families = new HashSet<String>();
+    families.add("general");
+    for (var key : technologyKeys) {
+      families.add(technologyFamily(key));
+    }
+    if (families.contains("java")) {
+      families.add("spring");
+    }
+    if (families.contains("spring")) {
+      families.add("java");
+    }
+    if (families.contains("javascript")) {
+      families.add("react");
+      families.add("node");
+      families.add("typescript");
+    }
+    if (families.contains("python")) {
+      families.add("django");
+    }
+    if (families.contains("dotnet")) {
+      families.add("csharp");
+    }
+    if (families.isEmpty()) {
+      families.add("general");
+    }
+    return families;
+  }
+
+  private String resourceFamily(LearningResource resource) {
+    return technologyFamily(normalizeTopic(resource.getTopic()));
+  }
+
+  private String technologyFamily(String value) {
+    return switch (value) {
+      case "java", "jvm" -> "java";
+      case "spring", "springboot" -> "spring";
+      case "javascript", "js" -> "javascript";
+      case "typescript", "ts" -> "typescript";
+      case "react" -> "react";
+      case "node", "nodejs" -> "node";
+      case "python" -> "python";
+      case "django" -> "django";
+      case "go", "golang" -> "go";
+      case "csharp", "c", "dotnet", "net" -> value.equals("csharp") || value.equals("c") ? "csharp" : "dotnet";
+      case "sql", "postgresql", "database" -> "database";
+      default -> isGeneralResourceFamily(value) ? "general" : value;
+    };
+  }
+
+  private boolean isGeneralResourceFamily(String value) {
+    return Set.of(
+            "testing",
+            "architecture",
+            "microservices",
+            "docker",
+            "kubernetes",
+            "devops",
+            "systemdesign",
+            "algorithms",
+            "general")
+        .contains(value);
+  }
+
+  private java.util.Set<Long> matchingResourceIdsByTag(String topic) {
+    return learningResourceTagRepository.findByResourceActiveTrue().stream()
+        .filter(tag -> tagMatches(normalizeTopic(tag.getTag()), topic))
+        .map(tag -> tag.getResource().getId())
+        .collect(java.util.stream.Collectors.toSet());
+  }
+
+  private boolean matchesTopic(
+      LearningResource resource, String topic, java.util.Set<Long> resourceIdsByTag) {
+    return resourceIdsByTag.contains(resource.getId()) || topicMatches(resource, topic);
+  }
+
+  private int matchPriority(
+      LearningResource resource, String topic, java.util.Set<Long> resourceIdsByTag) {
+    if (resourceIdsByTag.contains(resource.getId())) {
+      return 0;
+    }
+    if (normalizeTopic(resource.getTopic()).equals(topic)) {
+      return 1;
+    }
+    return 2;
+  }
+
+  private boolean topicMatches(LearningResource resource, String topic) {
     var resourceTopic = normalizeTopic(resource.getTopic());
-    return resourceTopic.equals(topic) || topic.contains(resourceTopic) || resourceTopic.contains(topic);
+    return tagMatches(resourceTopic, topic);
+  }
+
+  private boolean tagMatches(String tag, String topic) {
+    if (tag.isBlank() || topic.isBlank()) {
+      return false;
+    }
+    return tag.equals(topic) || topic.contains(tag) || tag.contains(topic);
   }
 
   private int languagePriority(LearningResource resource, String language) {
