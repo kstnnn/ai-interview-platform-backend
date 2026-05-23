@@ -9,6 +9,7 @@ public record AiStartInterviewRequest(
     UUID applicationId,
     Integer minQuestions,
     Integer maxQuestions,
+    Integer maxFollowUpsPerPrimary,
     String interviewLevel,
     String interviewLanguage,
     List<String> technologyKeys,

@@ -73,6 +73,7 @@ public class InterviewSessionController {
         dto.applicationId(),
         dto.minQuestions(),
         dto.maxQuestions(),
+        dto.maxFollowUpsPerPrimary(),
         dto.interviewLevel(),
         dto.interviewLanguage(),
         dto.technologyKeys(),

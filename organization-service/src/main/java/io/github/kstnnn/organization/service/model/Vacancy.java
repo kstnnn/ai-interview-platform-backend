@@ -69,6 +69,15 @@ public class Vacancy {
   @Column(name = "created_by_user_id", nullable = false)
   private UUID createdByUserId;
 
+  @Column(name = "min_primary_questions", nullable = false)
+  private Integer minPrimaryQuestions;
+
+  @Column(name = "max_primary_questions", nullable = false)
+  private Integer maxPrimaryQuestions;
+
+  @Column(name = "max_follow_ups_per_primary", nullable = false)
+  private Integer maxFollowUpsPerPrimary;
+
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
 
@@ -86,6 +95,15 @@ public class Vacancy {
     }
     if (status == null) {
       status = VacancyStatus.DRAFT;
+    }
+    if (minPrimaryQuestions == null) {
+      minPrimaryQuestions = 5;
+    }
+    if (maxPrimaryQuestions == null) {
+      maxPrimaryQuestions = 8;
+    }
+    if (maxFollowUpsPerPrimary == null) {
+      maxFollowUpsPerPrimary = 1;
     }
   }
 

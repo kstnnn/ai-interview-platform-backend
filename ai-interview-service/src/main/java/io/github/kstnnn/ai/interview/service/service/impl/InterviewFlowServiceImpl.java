@@ -139,13 +139,26 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
     var session = loadAndValidateInProgress(sessionId);
 
     int totalAsked = countAllQuestions(sessionId);
-    var finishReason = evaluateFinishCondition(sessionId, totalAsked);
+    int primaryAsked = countPrimaryQuestions(sessionId);
+    var finishReason = evaluateFinishCondition(sessionId, primaryAsked, totalAsked);
     if (finishReason.isPresent()) {
       finishSession(sessionId, finishReason.get());
       return null;
     }
 
-    if (!hasQuestionBudget(session)) {
+    if (!hasTotalQuestionBudget(session)) {
+      finishSession(sessionId, InterviewFinishedReason.MAX_QUESTIONS_REACHED);
+      return null;
+    }
+
+    var currentQuestion = getCurrentQuestion(sessionId);
+    if (evaluation.shouldAskFollowUp()
+        && canAskFollowUp(sessionId, currentQuestion)
+        && hasTotalQuestionBudget(session)) {
+      return generateFollowUp(sessionId, currentQuestion, evaluation);
+    }
+
+    if (!hasPrimaryQuestionBudget(session)) {
       finishSession(sessionId, InterviewFinishedReason.MAX_QUESTIONS_REACHED);
       return null;
     }
@@ -153,11 +166,6 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
     var plannedResult = askNextPlannedQuestion(sessionId);
     if (plannedResult != null) {
       return plannedResult;
-    }
-
-    var currentQuestion = getCurrentQuestion(sessionId);
-    if (evaluation.shouldAskFollowUp() && canAskFollowUp(sessionId, currentQuestion)) {
-      return generateFollowUp(sessionId, currentQuestion, evaluation);
     }
 
     var weakestTopic = topicStateService.findWeakestTopic(sessionId);
@@ -256,15 +264,18 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
   }
 
   private Optional<InterviewFinishedReason> evaluateFinishCondition(
-      UUID sessionId, int totalAsked) {
+      UUID sessionId, int primaryAsked, int totalAsked) {
     var session = iSessionRepository.findById(sessionId).orElseThrow();
-    var maxQuestions = session.getMaxQuestions();
 
-    if (totalAsked >= maxQuestions) {
+    if (totalAsked >= maxTotalQuestions(session)) {
       return Optional.of(InterviewFinishedReason.MAX_QUESTIONS_REACHED);
     }
 
-    if (!topicStateService.isSessionComplete(sessionId, totalAsked)) {
+    if (primaryAsked < session.getMinQuestions()) {
+      return Optional.empty();
+    }
+
+    if (!topicStateService.isSessionComplete(sessionId, primaryAsked)) {
       return Optional.empty();
     }
 
@@ -436,8 +447,20 @@ public class InterviewFlowServiceImpl implements InterviewFlowService {
     return Math.toIntExact(sQuestionRepository.countBySessionId(sessionId));
   }
 
-  private boolean hasQuestionBudget(InterviewSession session) {
-    return countAllQuestions(session.getId()) < session.getMaxQuestions();
+  private int countPrimaryQuestions(UUID sessionId) {
+    return Math.toIntExact(sQuestionRepository.countBySessionIdAndParentQuestionIsNull(sessionId));
+  }
+
+  private boolean hasPrimaryQuestionBudget(InterviewSession session) {
+    return countPrimaryQuestions(session.getId()) < session.getMaxQuestions();
+  }
+
+  private boolean hasTotalQuestionBudget(InterviewSession session) {
+    return countAllQuestions(session.getId()) < maxTotalQuestions(session);
+  }
+
+  private int maxTotalQuestions(InterviewSession session) {
+    return session.getMaxQuestions() * (1 + session.getMaxFollowUpsPerPrimary());
   }
 
   private NextQuestionResult toNextQuestionResult(

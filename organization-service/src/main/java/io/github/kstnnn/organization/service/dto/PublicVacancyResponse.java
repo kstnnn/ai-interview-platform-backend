@@ -19,4 +19,8 @@ public record PublicVacancyResponse(
     WorkFormat workFormat,
     VacancyLevel level,
     List<String> technologyKeys,
+    Integer minPrimaryQuestions,
+    Integer maxPrimaryQuestions,
+    Integer maxFollowUpsPerPrimary,
+    Integer estimatedMaxTotalQuestions,
     Instant createdAt) {}

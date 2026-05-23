@@ -22,5 +22,9 @@ public record VacancyResponse(
     VacancyStatus status,
     UUID createdByUserId,
     List<String> technologyKeys,
+    Integer minPrimaryQuestions,
+    Integer maxPrimaryQuestions,
+    Integer maxFollowUpsPerPrimary,
+    Integer estimatedMaxTotalQuestions,
     Instant createdAt,
     Instant updatedAt) {}

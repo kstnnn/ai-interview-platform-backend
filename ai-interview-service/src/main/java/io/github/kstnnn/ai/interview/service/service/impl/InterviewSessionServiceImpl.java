@@ -75,7 +75,15 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         .targetConfidence(targetConfidence)
         .minQuestions(sessionDto.minQuestions())
         .maxQuestions(sessionDto.maxQuestions())
+        .maxFollowUpsPerPrimary(resolveMaxFollowUpsPerPrimary(sessionDto.maxFollowUpsPerPrimary()))
         .build();
+  }
+
+  private Integer resolveMaxFollowUpsPerPrimary(Integer maxFollowUpsPerPrimary) {
+    if (maxFollowUpsPerPrimary == null) {
+      return 1;
+    }
+    return Math.max(0, Math.min(maxFollowUpsPerPrimary, 2));
   }
 
   private InterviewHistoryDto toHistoryDto(InterviewSession session) {

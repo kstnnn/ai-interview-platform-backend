@@ -55,6 +55,11 @@ public class VacancyServiceImpl implements VacancyService {
                 .level(request.level())
                 .status(VacancyStatus.DRAFT)
                 .createdByUserId(user.id())
+                .minPrimaryQuestions(resolveMinPrimaryQuestions(request.minPrimaryQuestions()))
+                .maxPrimaryQuestions(
+                    resolveMaxPrimaryQuestions(
+                        request.minPrimaryQuestions(), request.maxPrimaryQuestions()))
+                .maxFollowUpsPerPrimary(resolveMaxFollowUps(request.maxFollowUpsPerPrimary()))
                 .build());
     replaceTechnologies(vacancy, request.technologyKeys());
     return toResponse(vacancy);
@@ -131,6 +136,16 @@ public class VacancyServiceImpl implements VacancyService {
     if (request.technologyKeys() != null) {
       replaceTechnologies(vacancy, request.technologyKeys());
     }
+    if (request.minPrimaryQuestions() != null) {
+      vacancy.setMinPrimaryQuestions(request.minPrimaryQuestions());
+    }
+    if (request.maxPrimaryQuestions() != null) {
+      vacancy.setMaxPrimaryQuestions(request.maxPrimaryQuestions());
+    }
+    if (request.maxFollowUpsPerPrimary() != null) {
+      vacancy.setMaxFollowUpsPerPrimary(request.maxFollowUpsPerPrimary());
+    }
+    ensureValidInterviewSettings(vacancy);
     return toResponse(vacancy);
   }
 
@@ -215,6 +230,10 @@ public class VacancyServiceImpl implements VacancyService {
         vacancy.getStatus(),
         vacancy.getCreatedByUserId(),
         vacancyTechnologyRepository.findTechnologyKeysByVacancyId(vacancy.getId()),
+        vacancy.getMinPrimaryQuestions(),
+        vacancy.getMaxPrimaryQuestions(),
+        vacancy.getMaxFollowUpsPerPrimary(),
+        estimateMaxTotalQuestions(vacancy),
         vacancy.getCreatedAt(),
         vacancy.getUpdatedAt());
   }
@@ -232,6 +251,34 @@ public class VacancyServiceImpl implements VacancyService {
         vacancy.getWorkFormat(),
         vacancy.getLevel(),
         vacancyTechnologyRepository.findTechnologyKeysByVacancyId(vacancy.getId()),
+        vacancy.getMinPrimaryQuestions(),
+        vacancy.getMaxPrimaryQuestions(),
+        vacancy.getMaxFollowUpsPerPrimary(),
+        estimateMaxTotalQuestions(vacancy),
         vacancy.getCreatedAt());
+  }
+
+  private Integer resolveMinPrimaryQuestions(Integer minPrimaryQuestions) {
+    return minPrimaryQuestions != null ? minPrimaryQuestions : 5;
+  }
+
+  private Integer resolveMaxPrimaryQuestions(Integer minPrimaryQuestions, Integer maxPrimaryQuestions) {
+    var resolvedMin = resolveMinPrimaryQuestions(minPrimaryQuestions);
+    var resolvedMax = maxPrimaryQuestions != null ? maxPrimaryQuestions : 8;
+    return Math.max(resolvedMin, resolvedMax);
+  }
+
+  private Integer resolveMaxFollowUps(Integer maxFollowUpsPerPrimary) {
+    return maxFollowUpsPerPrimary != null ? maxFollowUpsPerPrimary : 1;
+  }
+
+  private void ensureValidInterviewSettings(Vacancy vacancy) {
+    if (vacancy.getMaxPrimaryQuestions() < vacancy.getMinPrimaryQuestions()) {
+      vacancy.setMaxPrimaryQuestions(vacancy.getMinPrimaryQuestions());
+    }
+  }
+
+  private Integer estimateMaxTotalQuestions(Vacancy vacancy) {
+    return vacancy.getMaxPrimaryQuestions() * (1 + vacancy.getMaxFollowUpsPerPrimary());
   }
 }

@@ -10,6 +10,7 @@ public record StartInterviewSessionDto(
     UUID applicationId,
     Integer minQuestions,
     Integer maxQuestions,
+    Integer maxFollowUpsPerPrimary,
     InterviewLevel interviewLevel,
     String interviewLanguage,
     List<String> technologyKeys,

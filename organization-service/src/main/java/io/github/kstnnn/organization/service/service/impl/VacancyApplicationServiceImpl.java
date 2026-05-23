@@ -117,13 +117,15 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
                         q.getTopic(),
                         q.getDisplayOrder()))
             .toList();
-    var maxQuestions = Math.max(8, customQuestions.size() + 6);
+    var minPrimaryQuestions = Math.max(vacancy.getMinPrimaryQuestions(), customQuestions.size());
+    var maxPrimaryQuestions = Math.max(vacancy.getMaxPrimaryQuestions(), minPrimaryQuestions);
     return new AiStartInterviewRequest(
         application.getCandidateUserId(),
         vacancy.getId(),
         application.getId(),
-        Math.max(3, customQuestions.size()),
-        maxQuestions,
+        minPrimaryQuestions,
+        maxPrimaryQuestions,
+        vacancy.getMaxFollowUpsPerPrimary(),
         vacancy.getLevel().name(),
         "Russian",
         technologies,
