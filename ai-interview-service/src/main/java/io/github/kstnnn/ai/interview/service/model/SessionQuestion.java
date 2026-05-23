@@ -2,6 +2,8 @@ package io.github.kstnnn.ai.interview.service.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -54,6 +56,16 @@ public class SessionQuestion {
   @Column(name = "question_text_snapshot", nullable = false, columnDefinition = "text")
   private String questionTextSnapshot;
 
+  @Column(name = "expected_answer_snapshot", columnDefinition = "text")
+  private String expectedAnswerSnapshot;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "source_type", nullable = false, length = 32)
+  private QuestionSourceType sourceType;
+
+  @Column(name = "external_question_id")
+  private UUID externalQuestionId;
+
   @Column(name = "selection_reason", length = 64)
   private SelectionReason selectionReason;
 
@@ -70,6 +82,9 @@ public class SessionQuestion {
     }
     if (questionType == null) {
       questionType = QuestionType.PRIMARY;
+    }
+    if (sourceType == null) {
+      sourceType = QuestionSourceType.QUESTION_BANK;
     }
   }
 }

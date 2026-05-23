@@ -9,6 +9,7 @@ public record InterviewQuestionReportDto(
     int roundNumber,
     int questionIndex,
     String questionType,
+    String sourceType,
     String topic,
     String subtopic,
     Difficulty difficulty,

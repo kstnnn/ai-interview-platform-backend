@@ -9,6 +9,6 @@ import org.springframework.data.repository.ListCrudRepository;
 public interface PlannedSessionQuestionRepository
     extends ListCrudRepository<PlannedSessionQuestion, UUID> {
 
-  Optional<PlannedSessionQuestion> findFirstByInterviewSessionIdAndPlannedStatus(
+  Optional<PlannedSessionQuestion> findFirstByInterviewSessionIdAndPlannedStatusOrderByDisplayOrderAsc(
       UUID sessionId, PlannedStatus status);
 }

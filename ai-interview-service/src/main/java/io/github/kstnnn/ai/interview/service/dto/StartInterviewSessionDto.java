@@ -6,8 +6,12 @@ import java.util.UUID;
 
 public record StartInterviewSessionDto(
     UUID userId,
+    UUID vacancyId,
+    UUID applicationId,
     Integer minQuestions,
     Integer maxQuestions,
+    Integer maxFollowUpsPerPrimary,
     InterviewLevel interviewLevel,
     String interviewLanguage,
-    List<String> technologyKeys) {}
+    List<String> technologyKeys,
+    List<CustomInterviewQuestionDto> customQuestions) {}
