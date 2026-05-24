@@ -1,5 +1,6 @@
 package io.github.kstnnn.user.service.service.impl;
 
+import io.github.kstnnn.user.service.dto.UserAuthLookupDto;
 import io.github.kstnnn.user.service.dto.UserCreateRequestDto;
 import io.github.kstnnn.user.service.dto.UserResponseDto;
 import io.github.kstnnn.user.service.exception.UserAlreadyDeletedException;
@@ -45,6 +46,15 @@ public class UserServiceImpl implements UserService {
     log.info("Get user by providerUserId {}", providerUserId);
     return userRepository
         .findResponseDtoByProviderUserId(providerUserId)
+        .orElseThrow(() -> new UserNotFoundException("providerUserId", providerUserId));
+  }
+
+  @Override
+  public UserAuthLookupDto getAuthByProviderUserId(String providerUserId) {
+    return userRepository
+        .findUserByProviderUserId(providerUserId)
+        .filter(user -> user.getUserStatus() != UserStatus.DELETED)
+        .map(UserAuthLookupDto::toDto)
         .orElseThrow(() -> new UserNotFoundException("providerUserId", providerUserId));
   }
 

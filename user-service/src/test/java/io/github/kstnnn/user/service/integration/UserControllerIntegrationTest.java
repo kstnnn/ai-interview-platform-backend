@@ -227,7 +227,7 @@ public class UserControllerIntegrationTest {
   }
 
   @Test
-  void shouldReturn400WhenUserAlreadyDeleted() {
+  void shouldReturn403WhenDeletedUserCallsProtectedEndpoint() {
     // Given
     var deleted =
         User.builder()
@@ -251,7 +251,7 @@ public class UserControllerIntegrationTest {
         .header("Authorization", "Bearer " + token)
         .exchange()
         .expectStatus()
-        .isBadRequest();
+        .isForbidden();
   }
 
   @Test

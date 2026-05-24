@@ -13,6 +13,12 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+  private final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter;
+
+  public SecurityConfig(JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter) {
+    this.jwtGrantedAuthoritiesConverter = jwtGrantedAuthoritiesConverter;
+  }
+
   @Bean
   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http.csrf(t -> t.disable())
@@ -31,8 +37,20 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/v1/vacancies/*")
                     .permitAll()
                     .anyRequest()
-                    .authenticated())
-        .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+                    .hasAnyRole("CANDIDATE", "MANAGER", "ADMIN"))
+        .oauth2ResourceServer(
+            oauth2 ->
+                oauth2.jwt(
+                    jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
     return http.build();
+  }
+
+  @Bean
+  org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
+      jwtAuthenticationConverter() {
+    var converter =
+        new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter();
+    converter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
+    return converter;
   }
 }
