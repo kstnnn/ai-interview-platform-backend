@@ -1,3 +1,5 @@
 package io.github.kstnnn.organization.service.dto;
 
-public record VacancyApplyRequest(String coverLetter) {}
+import jakarta.validation.Valid;
+
+public record VacancyApplyRequest(String coverLetter, @Valid CandidateContactsDto candidateContacts) {}

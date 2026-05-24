@@ -1,6 +1,7 @@
 package io.github.kstnnn.organization.service.controller;
 
 import io.github.kstnnn.organization.service.dto.PublicVacancyResponse;
+import io.github.kstnnn.organization.service.dto.EmployerApplicationReportDto;
 import io.github.kstnnn.organization.service.dto.VacancyApplicationResponse;
 import io.github.kstnnn.organization.service.dto.VacancyApplyRequest;
 import io.github.kstnnn.organization.service.dto.VacancyQuestionRequest;
@@ -51,7 +52,7 @@ public class VacancyController {
   public VacancyApplicationResponse apply(
       @AuthenticationPrincipal Jwt jwt,
       @PathVariable UUID vacancyId,
-      @RequestBody(required = false) VacancyApplyRequest request) {
+      @Valid @RequestBody VacancyApplyRequest request) {
     return vacancyApplicationService.apply(jwt, vacancyId, request);
   }
 
@@ -118,5 +119,13 @@ public class VacancyController {
   public List<VacancyApplicationResponse> getApplications(
       @AuthenticationPrincipal Jwt jwt, @PathVariable UUID vacancyId) {
     return vacancyApplicationService.getVacancyApplications(jwt, vacancyId);
+  }
+
+  @GetMapping("/{vacancyId}/applications/{applicationId}/report")
+  public EmployerApplicationReportDto getApplicationReport(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID vacancyId,
+      @PathVariable UUID applicationId) {
+    return vacancyApplicationService.getEmployerReport(jwt, vacancyId, applicationId);
   }
 }

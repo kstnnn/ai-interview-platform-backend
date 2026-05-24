@@ -6,4 +6,6 @@ import java.util.UUID;
 public interface InterviewReportService {
 
   InterviewReportDto getMockReport(UUID sessionId, UUID userId);
+
+  InterviewReportDto getInternalReport(UUID sessionId);
 }

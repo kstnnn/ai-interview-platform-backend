@@ -44,6 +44,33 @@ public class VacancyApplication {
   @Column(name = "candidate_user_id", nullable = false)
   private UUID candidateUserId;
 
+  @Column(name = "candidate_first_name")
+  private String candidateFirstName;
+
+  @Column(name = "candidate_last_name")
+  private String candidateLastName;
+
+  @Column(name = "candidate_email")
+  private String candidateEmail;
+
+  @Column(name = "contact_email", length = 320)
+  private String contactEmail;
+
+  @Column(name = "contact_phone")
+  private String contactPhone;
+
+  @Column(name = "contact_telegram")
+  private String contactTelegram;
+
+  @Column(name = "contact_linkedin", length = 2048)
+  private String contactLinkedIn;
+
+  @Column(name = "contact_portfolio_url", length = 2048)
+  private String contactPortfolioUrl;
+
+  @Column(name = "contact_hh_resume_url", length = 2048)
+  private String contactHhResumeUrl;
+
   @Column(name = "interview_session_id")
   private UUID interviewSessionId;
 

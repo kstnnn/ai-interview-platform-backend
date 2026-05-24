@@ -52,3 +52,6 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${ZITADEL_ISSUER_URI}
+
+app:
+  internal-token: ${INTERNAL_SERVICE_TOKEN:local-internal-token}

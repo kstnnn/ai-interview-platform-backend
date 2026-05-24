@@ -2,19 +2,18 @@ package io.github.kstnnn.organization.service.dto;
 
 import io.github.kstnnn.organization.service.model.VacancyApplicationStatus;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
-public record VacancyApplicationResponse(
+public record EmployerApplicationReportDto(
     UUID applicationId,
     UUID vacancyId,
-    UUID candidateUserId,
-    String candidateName,
-    CandidateContactsDto candidateContacts,
-    VacancyApplicationStatus status,
     UUID interviewSessionId,
+    EmployerCandidateDto candidate,
+    VacancyApplicationStatus status,
     Double sessionConfidence,
     String recommendation,
-    String coverLetter,
+    List<AiTopicStateSummaryDto> topics,
+    List<AiInterviewQuestionReportDto> questions,
     Instant createdAt,
-    Instant completedAt,
-    Instant updatedAt) {}
+    Instant completedAt) {}

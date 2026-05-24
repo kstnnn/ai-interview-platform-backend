@@ -39,6 +39,17 @@ public class InterviewReportServiceImpl implements InterviewReportService {
     if (session.getSessionType() != InterviewSessionType.MOCK) {
       throw new IllegalStateException("Candidate report is available only for mock interviews");
     }
+    return buildReport(sessionId);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public InterviewReportDto getInternalReport(UUID sessionId) {
+    return buildReport(sessionId);
+  }
+
+  private InterviewReportDto buildReport(UUID sessionId) {
+    var session = iSessionRepository.findById(sessionId).orElseThrow();
     var topics = topicStateService.getTopicSummaries(sessionId);
     var questions =
         sQuestionRepository.findBySessionIdOrderByRoundNumberAsc(sessionId).stream()

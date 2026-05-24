@@ -37,3 +37,4 @@ app:
     base-url: ${USER_SERVICE_BASE_URL:http://localhost:8080}
   ai-interview-service:
     base-url: ${AI_INTERVIEW_SERVICE_BASE_URL:http://localhost:8081}
+  internal-token: ${INTERNAL_SERVICE_TOKEN:local-internal-token}
