@@ -35,6 +35,12 @@ public class GlobalExceptionHandler {
     return Map.of("message", ex.getMessage());
   }
 
+  @ExceptionHandler(InvalidApplicationRequestException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  Map<String, String> handleInvalidApplicationRequest(InvalidApplicationRequestException ex) {
+    return Map.of("message", ex.getMessage());
+  }
+
   @ExceptionHandler(DuplicateApplicationException.class)
   @ResponseStatus(HttpStatus.CONFLICT)
   Map<String, String> handleDuplicateApplication(DuplicateApplicationException ex) {

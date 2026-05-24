@@ -2,6 +2,8 @@ package io.github.kstnnn.ai.interview.service.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
@@ -37,6 +39,10 @@ public class InterviewSession {
 
   @Column(name = "application_id")
   private UUID applicationId;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "session_type", nullable = false, length = 32)
+  private InterviewSessionType sessionType;
 
   @Column(name = "min_questions", nullable = false)
   private Integer minQuestions;
@@ -81,6 +87,9 @@ public class InterviewSession {
     }
     if (status == null) {
       status = InterviewSessionStatus.CREATED;
+    }
+    if (sessionType == null) {
+      sessionType = applicationId == null ? InterviewSessionType.MOCK : InterviewSessionType.VACANCY_APPLICATION;
     }
     if (minQuestionsPerTopic == null) {
       minQuestionsPerTopic = 2;

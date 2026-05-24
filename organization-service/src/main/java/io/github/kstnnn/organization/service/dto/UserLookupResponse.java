@@ -4,4 +4,10 @@ import io.github.kstnnn.organization.service.model.UserStatus;
 import io.github.kstnnn.organization.service.model.UserType;
 import java.util.UUID;
 
-public record UserLookupResponse(UUID id, UserType userType, UserStatus userStatus) {}
+public record UserLookupResponse(
+    UUID id,
+    String email,
+    String firstName,
+    String lastName,
+    UserType userType,
+    UserStatus userStatus) {}

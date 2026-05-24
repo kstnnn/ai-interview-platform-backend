@@ -4,17 +4,15 @@ import io.github.kstnnn.ai.interview.service.model.InterviewLevel;
 import io.github.kstnnn.ai.interview.service.model.InterviewSessionStatus;
 import io.github.kstnnn.ai.interview.service.model.InterviewSessionType;
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
-public record InterviewHistoryDto(
+public record InterviewSessionSummaryDto(
     UUID sessionId,
     InterviewSessionType sessionType,
     InterviewSessionStatus status,
     InterviewLevel interviewLevel,
     String interviewLanguage,
-    List<String> technologyKeys,
-    double sessionConfidence,
+    UUID vacancyId,
+    UUID applicationId,
     Instant startedAt,
-    Instant finishedAt,
-    long questionsAsked) {}
+    Instant finishedAt) {}
