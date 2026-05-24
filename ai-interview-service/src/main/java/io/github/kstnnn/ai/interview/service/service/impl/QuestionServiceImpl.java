@@ -78,7 +78,7 @@ public class QuestionServiceImpl implements QuestionService {
       return Optional.empty();
     }
 
-    return qRepository.findAllByExternalIdIn(results).stream().findFirst();
+    return qRepository.findAllByExternalIdInAndActiveTrue(results).stream().findFirst();
   }
 
   private List<Question> getQuestionsPerTechnology(String technology) {
@@ -102,7 +102,7 @@ public class QuestionServiceImpl implements QuestionService {
               .map(d -> (String) d.getMetadata().get("id"))
               .toList();
 
-      questions.addAll(qRepository.findAllByExternalIdIn(questionExternalIds));
+      questions.addAll(qRepository.findAllByExternalIdInAndActiveTrue(questionExternalIds));
     }
 
     return questions;

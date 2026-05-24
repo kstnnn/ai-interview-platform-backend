@@ -1,5 +1,6 @@
 package io.github.kstnnn.user.service.controller;
 
+import io.github.kstnnn.user.service.dto.UserAuthLookupDto;
 import io.github.kstnnn.user.service.dto.UserCreateRequestDto;
 import io.github.kstnnn.user.service.dto.UserResponseDto;
 import io.github.kstnnn.user.service.service.UserService;
@@ -31,6 +32,11 @@ public class UserController {
   @GetMapping("/by-provider-id/{providerUserId}")
   ResponseEntity<UserResponseDto> getUserByProviderId(@PathVariable String providerUserId) {
     return ResponseEntity.ok(userService.getByProviderUserId(providerUserId));
+  }
+
+  @GetMapping("/auth/by-provider-id/{providerUserId}")
+  ResponseEntity<UserAuthLookupDto> getUserAuthByProviderId(@PathVariable String providerUserId) {
+    return ResponseEntity.ok(userService.getAuthByProviderUserId(providerUserId));
   }
 
   @PostMapping

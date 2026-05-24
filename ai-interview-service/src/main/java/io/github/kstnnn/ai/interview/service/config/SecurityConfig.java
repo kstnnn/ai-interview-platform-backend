@@ -19,6 +19,12 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+  private final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter;
+
+  public SecurityConfig(JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter) {
+    this.jwtGrantedAuthoritiesConverter = jwtGrantedAuthoritiesConverter;
+  }
+
   @Value("${ZITADEL_ISSUER_URI}")
   private String issuerUri;
 
@@ -36,10 +42,24 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/internal/interviews/*/report")
                     .permitAll()
+                    .requestMatchers("/api/v1/admin/**")
+                    .hasRole("ADMIN")
                     .anyRequest()
-                    .authenticated())
-        .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}));
+                    .hasAnyRole("CANDIDATE", "MANAGER", "ADMIN"))
+        .oauth2ResourceServer(
+            oauth2 ->
+                oauth2.jwt(
+                    jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
     return http.build();
+  }
+
+  @Bean
+  org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
+      jwtAuthenticationConverter() {
+    var converter =
+        new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter();
+    converter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
+    return converter;
   }
 
   @Bean

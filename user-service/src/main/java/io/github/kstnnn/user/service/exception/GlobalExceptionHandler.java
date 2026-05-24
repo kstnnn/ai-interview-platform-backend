@@ -42,6 +42,15 @@ public class GlobalExceptionHandler {
     return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
   }
 
+  @ExceptionHandler(InvalidUserRegistrationException.class)
+  public ResponseEntity<Map<String, String>> handleInvalidUserRegistration(
+      InvalidUserRegistrationException ex) {
+
+    log.error(ex.getMessage());
+
+    return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<Map<String, Object>> handleValidationException(
       MethodArgumentNotValidException ex) {

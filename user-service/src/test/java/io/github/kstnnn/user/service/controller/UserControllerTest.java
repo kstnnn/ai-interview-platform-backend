@@ -186,6 +186,6 @@ public class UserControllerTest {
         .andExpect(jsonPath("$.details.providerUserId").value("Provider id is required."))
         .andExpect(jsonPath("$.details.email").value("Email must be valid."))
         .andExpect(jsonPath("$.details.firstName").value("First name is required."))
-        .andExpect(jsonPath("$.details.roles").value("At least one role is required."));
+        .andExpect(jsonPath("$.details.userType").value("User type is required."));
   }
 }

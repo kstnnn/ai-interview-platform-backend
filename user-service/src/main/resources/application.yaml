@@ -38,6 +38,10 @@ spring:
     virtual:
       enabled: true
 
+app:
+  admin:
+    provider-user-ids: ${APP_ADMIN_PROVIDER_USER_IDS:}
+
 # management:
 #   tracing:
 #     sampling:

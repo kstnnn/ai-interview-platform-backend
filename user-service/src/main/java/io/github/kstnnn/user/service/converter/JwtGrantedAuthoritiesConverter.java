@@ -1,5 +1,6 @@
 package io.github.kstnnn.user.service.converter;
 
+import io.github.kstnnn.user.service.model.UserStatus;
 import io.github.kstnnn.user.service.repository.UserRepository;
 import java.util.Collection;
 import java.util.Collections;
@@ -27,7 +28,12 @@ public class JwtGrantedAuthoritiesConverter
       return Collections.emptySet();
     }
 
-    return userOpt.get().getRoles().stream()
+    var user = userOpt.get();
+    if (user.getUserStatus() != UserStatus.ACTIVE || user.getRoles() == null) {
+      return Collections.emptySet();
+    }
+
+    return user.getRoles().stream()
         .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
         .collect(Collectors.toSet());
   }
