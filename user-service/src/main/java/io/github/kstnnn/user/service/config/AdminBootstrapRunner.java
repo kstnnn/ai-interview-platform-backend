@@ -3,8 +3,8 @@ package io.github.kstnnn.user.service.config;
 import io.github.kstnnn.user.service.model.UserRole;
 import io.github.kstnnn.user.service.model.UserStatus;
 import io.github.kstnnn.user.service.repository.UserRepository;
-import java.util.HashSet;
 import java.util.Arrays;
+import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,10 +43,14 @@ public class AdminBootstrapRunner implements ApplicationRunner {
           .ifPresentOrElse(
               user -> {
                 if (user.getUserStatus() == UserStatus.DELETED) {
-                  log.warn("Skipping deleted bootstrap admin user providerUserId={}", providerUserId);
+                  log.warn(
+                      "Skipping deleted bootstrap admin user providerUserId={}", providerUserId);
                   return;
                 }
-                var roles = user.getRoles() == null ? new HashSet<UserRole>() : new HashSet<>(user.getRoles());
+                var roles =
+                    user.getRoles() == null
+                        ? new HashSet<UserRole>()
+                        : new HashSet<>(user.getRoles());
                 if (roles.add(UserRole.ADMIN)) {
                   user.setRoles(roles);
                   userRepository.save(user);

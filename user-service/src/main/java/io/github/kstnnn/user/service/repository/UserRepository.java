@@ -1,10 +1,10 @@
 package io.github.kstnnn.user.service.repository;
 
 import io.github.kstnnn.user.service.dto.UserResponseDto;
+import io.github.kstnnn.user.service.model.User;
 import io.github.kstnnn.user.service.model.UserRole;
 import io.github.kstnnn.user.service.model.UserStatus;
 import io.github.kstnnn.user.service.model.UserType;
-import io.github.kstnnn.user.service.model.User;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -38,7 +38,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
   @Query(
       "SELECT DISTINCT u FROM User u LEFT JOIN u.roles r "
-      + "WHERE u.userStatus <> 'DELETED' "
+          + "WHERE u.userStatus <> 'DELETED' "
           + "AND (:userType IS NULL OR u.userType = :userType) "
           + "AND (:userStatus IS NULL OR u.userStatus = :userStatus) "
           + "AND (:role IS NULL OR r = :role)")
