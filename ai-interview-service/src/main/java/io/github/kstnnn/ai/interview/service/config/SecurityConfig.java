@@ -40,6 +40,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/v1/interviews")
                     .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/technologies", "/api/v1/technologies/grouped")
+                    .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/internal/interviews/*/report")
                     .permitAll()
                     .requestMatchers("/api/v1/admin/**")

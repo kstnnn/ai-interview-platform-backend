@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 public interface TechnologyRepository extends JpaRepository<Technology, Long> {
   Optional<Technology> findByKey(String key);
 
+  List<Technology> findByActiveTrueOrderBySortOrderAscDisplayNameAsc();
+
   @Query("SELECT t.id FROM Technology t WHERE t.key IN :keys")
   List<Long> findIdsByKeys(List<String> keys);
 }

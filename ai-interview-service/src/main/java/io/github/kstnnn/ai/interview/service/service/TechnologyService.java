@@ -1,3 +1,11 @@
 package io.github.kstnnn.ai.interview.service.service;
 
-public interface TechnologyService {}
+import io.github.kstnnn.ai.interview.service.dto.TechnologyResponseDto;
+import io.github.kstnnn.ai.interview.service.dto.TechnologyGroupResponseDto;
+import java.util.List;
+
+public interface TechnologyService {
+  List<TechnologyResponseDto> getActiveTechnologies();
+
+  List<TechnologyGroupResponseDto> getGroupedActiveTechnologies();
+}

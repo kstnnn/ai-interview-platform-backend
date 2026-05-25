@@ -4,9 +4,11 @@ import io.github.kstnnn.ai.interview.service.model.Difficulty;
 import io.github.kstnnn.ai.interview.service.model.Question;
 import io.github.kstnnn.ai.interview.service.repository.QuestionRepository;
 import io.github.kstnnn.ai.interview.service.service.QuestionService;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.vectorstore.SearchRequest;
@@ -18,6 +20,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 public class QuestionServiceImpl implements QuestionService {
+
+  private static final int QUESTION_CANDIDATE_POOL_SIZE = 10;
 
   private final VectorStore vectorStore;
   private final QuestionRepository qRepository;
@@ -41,7 +45,7 @@ public class QuestionServiceImpl implements QuestionService {
 
     log.info("Base questions requested for technologyKeys={}", normalizedKeys);
 
-    List<Question> questions = new java.util.ArrayList<>();
+    List<Question> questions = new ArrayList<>();
     for (String key : normalizedKeys) {
       questions.addAll(getQuestionsPerTechnology(key));
     }
@@ -55,7 +59,7 @@ public class QuestionServiceImpl implements QuestionService {
     var expression =
         filterExpressionBuilder
             .and(
-                filterExpressionBuilder.eq("technology", topic.toLowerCase()),
+                filterExpressionBuilder.eq("topic", topic),
                 filterExpressionBuilder.eq("difficulty", difficulty.toString()))
             .build();
 
@@ -82,10 +86,8 @@ public class QuestionServiceImpl implements QuestionService {
   }
 
   private List<Question> getQuestionsPerTechnology(String technology) {
-    List<Question> questions = new java.util.ArrayList<>();
+    List<Question> questions = new ArrayList<>();
     var filterExpressionBuilder = new FilterExpressionBuilder();
-
-    var searchRequest = SearchRequest.builder().similarityThreshold(0.7).topK(1);
 
     for (var difficulty : Difficulty.values()) {
       var expression =
@@ -95,16 +97,29 @@ public class QuestionServiceImpl implements QuestionService {
                   filterExpressionBuilder.eq("difficulty", difficulty.toString()))
               .build();
 
-      searchRequest.filterExpression(expression);
-
       var questionExternalIds =
-          vectorStore.similaritySearch(searchRequest.build()).stream()
+          vectorStore
+              .similaritySearch(
+                  SearchRequest.builder()
+                      .similarityThreshold(0.7)
+                      .topK(QUESTION_CANDIDATE_POOL_SIZE)
+                      .filterExpression(expression)
+                      .build())
+              .stream()
               .map(d -> (String) d.getMetadata().get("id"))
               .toList();
 
-      questions.addAll(qRepository.findAllByExternalIdInAndActiveTrue(questionExternalIds));
+      pickRandom(qRepository.findAllByExternalIdInAndActiveTrue(questionExternalIds))
+          .ifPresent(questions::add);
     }
 
     return questions;
+  }
+
+  private Optional<Question> pickRandom(List<Question> questions) {
+    if (questions.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.of(questions.get(ThreadLocalRandom.current().nextInt(questions.size())));
   }
 }

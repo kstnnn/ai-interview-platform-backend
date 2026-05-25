@@ -9,6 +9,8 @@ import io.github.kstnnn.ai.interview.service.model.Question;
 import io.github.kstnnn.ai.interview.service.model.QuestionSourceType;
 import io.github.kstnnn.ai.interview.service.repository.PlannedSessionQuestionRepository;
 import io.github.kstnnn.ai.interview.service.service.PlannedSessionQuestionService;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
@@ -30,9 +32,12 @@ public class PlannedSessionQuestionServiceImpl implements PlannedSessionQuestion
             .map(q -> toCustomPlannedQuestion(q, interviewSession))
             .toList();
     var baseOrder = plannedCustomQuestions.size() + 1;
+    var shuffledQuestions = new ArrayList<>(questions);
+    Collections.shuffle(shuffledQuestions);
     var plannedQuestions =
-        IntStream.range(0, questions.size())
-            .mapToObj(i -> toQuestionBankPlannedQuestion(questions.get(i), interviewSession, baseOrder + i))
+        IntStream.range(0, shuffledQuestions.size())
+            .mapToObj(
+                i -> toQuestionBankPlannedQuestion(shuffledQuestions.get(i), interviewSession, baseOrder + i))
             .toList();
     pRepository.saveAll(plannedCustomQuestions);
     pRepository.saveAll(plannedQuestions);
