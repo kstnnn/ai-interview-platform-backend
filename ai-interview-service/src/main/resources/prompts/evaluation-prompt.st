@@ -20,6 +20,9 @@ Evaluation rules:
 6. Ask for a follow-up only when one focused clarification could reasonably reveal whether the candidate understands the missing concept.
 7. Do not reveal the full expected answer in candidateFeedback.
 8. Write candidateFeedback and followUpFocus only in the interview language.
+9. The candidate answer may come from speech-to-text transcription and may contain recognition mistakes, especially for technical terms, class names, framework names, and mixed Russian-English words.
+10. Infer the intended technical terms when they are obvious from context, and do not penalize transcription or pronunciation errors unless they make the answer technically ambiguous.
+11. Evaluate the candidate's underlying technical understanding, not speech quality or ASR quality.
 
 Score each category from 0.0 to 1.0:
 - correctnessScore: factual correctness and coverage of key points.

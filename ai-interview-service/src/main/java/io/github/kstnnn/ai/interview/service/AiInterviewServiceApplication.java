@@ -7,6 +7,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class AiInterviewServiceApplication {
 
   public static void main(String[] args) {
+    System.setProperty("ai.djl.deviceType", "cpu");
+    System.setProperty("pytorch_flavor", "cpu");
     SpringApplication.run(AiInterviewServiceApplication.class, args);
   }
 }

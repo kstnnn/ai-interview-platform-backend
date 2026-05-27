@@ -55,3 +55,7 @@ spring:
 
 app:
   internal-token: ${INTERNAL_SERVICE_TOKEN:local-internal-token}
+  voice-service:
+    base-url: ${VOICE_SERVICE_BASE_URL:http://localhost:8090}
+    connect-timeout: ${VOICE_SERVICE_CONNECT_TIMEOUT:10s}
+    read-timeout: ${VOICE_SERVICE_READ_TIMEOUT:180s}
