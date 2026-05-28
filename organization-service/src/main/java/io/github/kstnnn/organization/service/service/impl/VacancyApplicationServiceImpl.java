@@ -1,7 +1,14 @@
 package io.github.kstnnn.organization.service.service.impl;
 
+import com.lowagie.text.Document;
+import com.lowagie.text.Font;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.pdf.BaseFont;
+import com.lowagie.text.pdf.PdfWriter;
 import io.github.kstnnn.organization.service.dto.AiCustomQuestionRequest;
 import io.github.kstnnn.organization.service.dto.AiInterviewReportDto;
+import io.github.kstnnn.organization.service.dto.AiInterviewQuestionReportDto;
+import io.github.kstnnn.organization.service.dto.AiTopicStateSummaryDto;
 import io.github.kstnnn.organization.service.dto.AiStartInterviewRequest;
 import io.github.kstnnn.organization.service.dto.CandidateContactsDto;
 import io.github.kstnnn.organization.service.dto.EmployerApplicationReportDto;
@@ -23,6 +30,13 @@ import io.github.kstnnn.organization.service.service.AiInterviewClient;
 import io.github.kstnnn.organization.service.service.CurrentUserService;
 import io.github.kstnnn.organization.service.service.OrganizationAccessService;
 import io.github.kstnnn.organization.service.service.VacancyApplicationService;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -127,6 +141,75 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
         report.questions(),
         application.getCreatedAt(),
         report.finishedAt());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public String exportVacancyApplicationsCsv(Jwt jwt, UUID vacancyId) {
+    var applications = getVacancyApplications(jwt, vacancyId);
+    var csv = new StringBuilder();
+    csv.append('\ufeff');
+    appendCsvRow(
+        csv,
+        List.of(
+            "application_id",
+            "vacancy_id",
+            "candidate_user_id",
+            "candidate_name",
+            "contact_email",
+            "phone",
+            "telegram",
+            "linked_in",
+            "portfolio_url",
+            "hh_resume_url",
+            "status",
+            "recommendation",
+            "session_confidence",
+            "interview_session_id",
+            "cover_letter",
+            "created_at",
+            "completed_at",
+            "updated_at",
+            "report_path"));
+    for (var application : applications) {
+      var contacts = application.candidateContacts();
+      appendCsvRow(
+          csv,
+          List.of(
+              value(application.applicationId()),
+              value(application.vacancyId()),
+              value(application.candidateUserId()),
+              value(application.candidateName()),
+              contacts != null ? value(contacts.email()) : "",
+              contacts != null ? value(contacts.phone()) : "",
+              contacts != null ? value(contacts.telegram()) : "",
+              contacts != null ? value(contacts.linkedIn()) : "",
+              contacts != null ? value(contacts.portfolioUrl()) : "",
+              contacts != null ? value(contacts.hhResumeUrl()) : "",
+              value(application.status()),
+              value(application.recommendation()),
+              value(application.sessionConfidence()),
+              value(application.interviewSessionId()),
+              value(application.coverLetter()),
+              value(application.createdAt()),
+              value(application.completedAt()),
+              value(application.updatedAt()),
+              "/api/v1/vacancies/%s/applications/%s/report".formatted(vacancyId, application.applicationId())));
+    }
+    return csv.toString();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public byte[] exportEmployerReportPdf(Jwt jwt, UUID vacancyId, UUID applicationId, String language) {
+    var report = getEmployerReport(jwt, vacancyId, applicationId);
+    var output = new ByteArrayOutputStream();
+    var document = new Document();
+    PdfWriter.getInstance(document, output);
+    document.open();
+    addReportContent(document, report, ReportLanguage.from(language));
+    document.close();
+    return output.toByteArray();
   }
 
   private VacancyApplication loadApplication(UUID vacancyId, UUID applicationId) {
@@ -286,5 +369,248 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
     var lastName = application.getCandidateLastName();
     var name = ((firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "")).trim();
     return name.isBlank() ? null : name;
+  }
+
+  private void addReportContent(Document document, EmployerApplicationReportDto report, ReportLanguage language) {
+    var fonts = PdfFonts.load();
+
+    document.add(new Paragraph(label(language, "Candidate Interview Report", "Отчет по техническому интервью"), fonts.title()));
+    document.add(new Paragraph(label(language, "Generated at: ", "Сформировано: ") + formatDate(Instant.now(), language), fonts.normal()));
+    document.add(new Paragraph(" "));
+
+    document.add(new Paragraph(label(language, "Candidate", "Кандидат"), fonts.section()));
+    var candidate = report.candidate();
+    document.add(new Paragraph(label(language, "Name: ", "Имя: ") + empty(fullName(candidate), language), fonts.normal()));
+    document.add(new Paragraph(label(language, "Account email: ", "Email аккаунта: ") + empty(candidate != null ? candidate.email() : null, language), fonts.normal()));
+    if (candidate != null && candidate.contacts() != null) {
+      document.add(new Paragraph(label(language, "Contact email: ", "Контактный email: ") + empty(candidate.contacts().email(), language), fonts.normal()));
+      document.add(new Paragraph(label(language, "Phone: ", "Телефон: ") + empty(candidate.contacts().phone(), language), fonts.normal()));
+      document.add(new Paragraph("Telegram: " + empty(candidate.contacts().telegram(), language), fonts.normal()));
+      document.add(new Paragraph("LinkedIn: " + empty(candidate.contacts().linkedIn(), language), fonts.normal()));
+      document.add(new Paragraph(label(language, "Portfolio: ", "Портфолио: ") + empty(candidate.contacts().portfolioUrl(), language), fonts.normal()));
+      document.add(new Paragraph("HH: " + empty(candidate.contacts().hhResumeUrl(), language), fonts.normal()));
+    }
+    document.add(new Paragraph(" "));
+
+    document.add(new Paragraph(label(language, "Summary", "Итоги"), fonts.section()));
+    document.add(new Paragraph(label(language, "Status: ", "Статус: ") + statusLabel(report.status(), language), fonts.normal()));
+    document.add(new Paragraph(label(language, "Recommendation: ", "Рекомендация: ") + recommendationLabel(report.recommendation(), language), fonts.normal()));
+    document.add(new Paragraph(label(language, "Overall score: ", "Итоговая оценка: ") + percent(report.sessionConfidence()), fonts.normal()));
+    document.add(new Paragraph(label(language, "Applied at: ", "Дата отклика: ") + formatDate(report.createdAt(), language), fonts.normal()));
+    document.add(new Paragraph(label(language, "Completed at: ", "Дата завершения: ") + formatDate(report.completedAt(), language), fonts.normal()));
+    document.add(new Paragraph(label(language, "Application ID: ", "ID отклика: ") + report.applicationId(), fonts.muted()));
+    document.add(new Paragraph(label(language, "Vacancy ID: ", "ID вакансии: ") + report.vacancyId(), fonts.muted()));
+    document.add(new Paragraph(label(language, "Interview session ID: ", "ID интервью: ") + report.interviewSessionId(), fonts.muted()));
+    document.add(new Paragraph(" "));
+
+    document.add(new Paragraph(label(language, "Topic Scores", "Оценка по темам"), fonts.section()));
+    for (AiTopicStateSummaryDto topic : report.topics() != null ? report.topics() : List.<AiTopicStateSummaryDto>of()) {
+      document.add(new Paragraph(topicLabel(topic.topic(), language), fonts.bold()));
+      document.add(new Paragraph(label(language, "Questions: ", "Вопросов: ") + topic.questionsAsked(), fonts.normal()));
+      document.add(new Paragraph(label(language, "Average score: ", "Средний результат: ") + percent(topic.avgScore()), fonts.normal()));
+      document.add(new Paragraph(label(language, "Mastery: ", "Уровень владения: ") + percent(topic.masteryScore()), fonts.normal()));
+      document.add(new Paragraph(label(language, "Evaluation confidence: ", "Уверенность оценки: ") + percent(topic.confidenceScore()), fonts.normal()));
+      document.add(new Paragraph(" "));
+    }
+
+    document.add(new Paragraph(label(language, "Questions", "Вопросы и ответы"), fonts.section()));
+    for (AiInterviewQuestionReportDto question : report.questions() != null ? report.questions() : List.<AiInterviewQuestionReportDto>of()) {
+      document.add(new Paragraph(label(language, "Question ", "Вопрос ") + question.roundNumber() + " | " + topicLabel(question.topic(), language), fonts.section()));
+      document.add(new Paragraph(label(language, "Type: ", "Тип: ") + questionTypeLabel(question.questionType(), language), fonts.muted()));
+      document.add(new Paragraph(label(language, "Difficulty: ", "Сложность: ") + difficultyLabel(question.difficulty(), language), fonts.muted()));
+      document.add(new Paragraph(label(language, "Question:", "Вопрос:"), fonts.bold()));
+      document.add(new Paragraph(empty(question.questionText(), language), fonts.normal()));
+      document.add(new Paragraph(label(language, "Candidate answer:", "Ответ кандидата:"), fonts.bold()));
+      document.add(new Paragraph(empty(question.answerText(), language), fonts.normal()));
+      document.add(new Paragraph(label(language, "Score: ", "Оценка: ") + percent(question.totalScore()), fonts.normal()));
+      document.add(new Paragraph(label(language, "Feedback:", "Обратная связь:"), fonts.bold()));
+      document.add(new Paragraph(empty(question.feedback(), language), fonts.normal()));
+      document.add(new Paragraph(label(language, "Knowledge gaps: ", "Пробелы в знаниях: ") + gaps(question.knowledgeGaps(), language), fonts.normal()));
+      document.add(new Paragraph(" "));
+    }
+  }
+
+  private String label(ReportLanguage language, String en, String ru) {
+    return language == ReportLanguage.RU ? ru : en;
+  }
+
+  private String empty(String value, ReportLanguage language) {
+    return value == null || value.isBlank() ? label(language, "Not provided", "Не указано") : value;
+  }
+
+  private String gaps(List<String> gaps, ReportLanguage language) {
+    if (gaps == null || gaps.isEmpty()) {
+      return label(language, "None identified", "Не выявлены");
+    }
+    return String.join(", ", gaps);
+  }
+
+  private String percent(Number value) {
+    if (value == null) {
+      return "-";
+    }
+    return Math.round(value.doubleValue() * 100.0) + "%";
+  }
+
+  private String formatDate(Instant instant, ReportLanguage language) {
+    if (instant == null) {
+      return "-";
+    }
+    var zone = ZoneId.systemDefault();
+    var pattern = language == ReportLanguage.RU ? "dd.MM.yyyy HH:mm" : "yyyy-MM-dd HH:mm";
+    return DateTimeFormatter.ofPattern(pattern).withZone(zone).format(instant);
+  }
+
+  private String statusLabel(VacancyApplicationStatus status, ReportLanguage language) {
+    if (status == null) {
+      return "-";
+    }
+    return switch (status) {
+      case INTERVIEW_COMPLETED -> label(language, "Interview completed", "Интервью завершено");
+      case INTERVIEW_IN_PROGRESS -> label(language, "Interview in progress", "Интервью в процессе");
+      case INTERVIEW_CREATED -> label(language, "Interview created", "Интервью создано");
+      case REJECTED -> label(language, "Rejected", "Отклонено");
+      case WITHDRAWN -> label(language, "Withdrawn", "Отозвано");
+    };
+  }
+
+  private String recommendationLabel(String recommendation, ReportLanguage language) {
+    if (recommendation == null || recommendation.isBlank()) {
+      return "-";
+    }
+    return switch (recommendation) {
+      case "STRONG_YES" -> label(language, "Strong yes", "Сильная рекомендация");
+      case "YES" -> label(language, "Yes", "Рекомендуется");
+      case "MAYBE" -> label(language, "Maybe", "Можно рассмотреть");
+      case "NO" -> label(language, "No", "Скорее не рекомендуется");
+      case "STRONG_NO" -> label(language, "Strong no", "Не рекомендуется");
+      default -> recommendation;
+    };
+  }
+
+  private String topicLabel(String topic, ReportLanguage language) {
+    if (topic == null || topic.isBlank()) {
+      return "-";
+    }
+    return switch (topic) {
+      case "custom" -> label(language, "Custom questions", "Пользовательские вопросы");
+      case "language_basics" -> label(language, "Language basics", "Основы языка");
+      case "concurrency" -> label(language, "Concurrency", "Многопоточность");
+      case "data_access" -> label(language, "Data access", "Доступ к данным");
+      case "database", "sql" -> label(language, "Databases", "Базы данных");
+      case "spring", "spring_core" -> "Spring";
+      case "spring_security", "security" -> label(language, "Security", "Безопасность");
+      case "architecture" -> label(language, "Architecture", "Архитектура");
+      case "testing" -> label(language, "Testing", "Тестирование");
+      default -> humanize(topic);
+    };
+  }
+
+  private String questionTypeLabel(String type, ReportLanguage language) {
+    if (type == null || type.isBlank()) {
+      return "-";
+    }
+    return switch (type) {
+      case "PRIMARY" -> label(language, "Primary question", "Основной вопрос");
+      case "FOLLOW_UP" -> label(language, "Follow-up", "Уточняющий вопрос");
+      default -> humanize(type);
+    };
+  }
+
+  private String difficultyLabel(String difficulty, ReportLanguage language) {
+    if (difficulty == null || difficulty.isBlank()) {
+      return "-";
+    }
+    return switch (difficulty) {
+      case "EASY" -> label(language, "Easy", "Легкая");
+      case "MEDIUM" -> label(language, "Medium", "Средняя");
+      case "HARD" -> label(language, "Hard", "Сложная");
+      default -> humanize(difficulty);
+    };
+  }
+
+  private String humanize(String value) {
+    var text = value.toLowerCase().replace('_', ' ').trim();
+    return text.isBlank() ? "-" : Character.toUpperCase(text.charAt(0)) + text.substring(1);
+  }
+
+  private String fullName(EmployerCandidateDto candidate) {
+    if (candidate == null) {
+      return "";
+    }
+    var name = ((candidate.firstName() != null ? candidate.firstName() : "")
+            + " "
+            + (candidate.lastName() != null ? candidate.lastName() : ""))
+        .trim();
+    return name.isBlank() ? "" : name;
+  }
+
+  private void appendCsvRow(StringBuilder csv, List<String> values) {
+    for (int i = 0; i < values.size(); i++) {
+      if (i > 0) {
+        csv.append(',');
+      }
+      csv.append(csvEscape(values.get(i)));
+    }
+    csv.append('\n');
+  }
+
+  private String csvEscape(String value) {
+    if (value == null) {
+      return "";
+    }
+    return '"' + value.replace("\r", " ").replace("\n", " ").replace("\"", "\"\"") + '"';
+  }
+
+  private String value(Object value) {
+    return value == null ? "" : value.toString();
+  }
+
+  private enum ReportLanguage {
+    RU,
+    EN;
+
+    static ReportLanguage from(String language) {
+      if (language == null || language.isBlank()) {
+        return RU;
+      }
+      return language.toLowerCase().startsWith("en") ? EN : RU;
+    }
+  }
+
+  private record PdfFonts(Font title, Font section, Font normal, Font bold, Font muted) {
+    static PdfFonts load() {
+      try {
+        var regular = BaseFont.createFont(resolveFontPath(false), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+        var bold = BaseFont.createFont(resolveFontPath(true), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+        return new PdfFonts(
+            new Font(bold, 18),
+            new Font(bold, 13),
+            new Font(regular, 10),
+            new Font(bold, 10),
+            new Font(regular, 8));
+      } catch (Exception ex) {
+        throw new IllegalStateException("Failed to load PDF Unicode font", ex);
+      }
+    }
+
+    private static String resolveFontPath(boolean bold) throws IOException {
+      var candidates =
+          bold
+              ? List.of(
+                  "/usr/share/fonts/noto/NotoSans-Bold.ttf",
+                  "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf",
+                  "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
+              : List.of(
+                  "/usr/share/fonts/noto/NotoSans-Regular.ttf",
+                  "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
+                  "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+      return candidates.stream()
+          .map(Path::of)
+          .filter(Files::exists)
+          .findFirst()
+          .map(Path::toString)
+          .orElseThrow(() -> new IOException("No Unicode PDF font found"));
+    }
   }
 }

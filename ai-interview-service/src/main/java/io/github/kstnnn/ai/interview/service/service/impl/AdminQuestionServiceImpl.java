@@ -48,6 +48,68 @@ public class AdminQuestionServiceImpl implements AdminQuestionService {
 
   @Override
   @Transactional(readOnly = true)
+  public List<AdminQuestionResponseDto> exportQuestions(
+      String search, String technologyKey, Difficulty difficulty, Boolean active) {
+    var normalizedSearch = search == null || search.isBlank() ? null : search.trim().toLowerCase();
+    var normalizedTechnologyKey =
+        technologyKey == null || technologyKey.isBlank() ? null : technologyKey.trim().toLowerCase();
+    if (normalizedSearch == null) {
+      return questionRepository
+          .findAdminQuestionsForExport(normalizedTechnologyKey, difficulty, active)
+          .stream()
+          .map(AdminQuestionResponseDto::toDto)
+          .toList();
+    }
+    return questionRepository
+        .findAdminQuestionsBySearchForExport(normalizedSearch, normalizedTechnologyKey, difficulty, active)
+        .stream()
+        .map(AdminQuestionResponseDto::toDto)
+        .toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public String exportQuestionsCsv(String search, String technologyKey, Difficulty difficulty, Boolean active) {
+    var questions = exportQuestions(search, technologyKey, difficulty, active);
+    var csv = new StringBuilder();
+    csv.append('\ufeff');
+    appendCsvRow(
+        csv,
+        List.of(
+            "id",
+            "external_id",
+            "technology_key",
+            "technology_name",
+            "topic",
+            "subtopic",
+            "difficulty",
+            "question_text",
+            "expected_answer",
+            "active",
+            "created_at",
+            "updated_at"));
+    for (var question : questions) {
+      appendCsvRow(
+          csv,
+          List.of(
+              value(question.id()),
+              value(question.externalId()),
+              question.technology() != null ? value(question.technology().key()) : "",
+              question.technology() != null ? value(question.technology().displayName()) : "",
+              value(question.topic()),
+              value(question.subtopic()),
+              value(question.difficulty()),
+              value(question.questionText()),
+              value(question.expectedAnswer()),
+              value(question.active()),
+              value(question.createdAt()),
+              value(question.updatedAt())));
+    }
+    return csv.toString();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public AdminQuestionResponseDto getQuestion(UUID questionId) {
     return questionRepository
         .findById(questionId)
@@ -169,5 +231,26 @@ public class AdminQuestionServiceImpl implements AdminQuestionService {
     }
     var trimmed = value.trim();
     return trimmed.isEmpty() ? null : trimmed;
+  }
+
+  private void appendCsvRow(StringBuilder csv, List<String> values) {
+    for (int i = 0; i < values.size(); i++) {
+      if (i > 0) {
+        csv.append(',');
+      }
+      csv.append(csvEscape(values.get(i)));
+    }
+    csv.append('\n');
+  }
+
+  private String csvEscape(String value) {
+    if (value == null) {
+      return "";
+    }
+    return '"' + value.replace("\r", " ").replace("\n", " ").replace("\"", "\"\"") + '"';
+  }
+
+  private String value(Object value) {
+    return value == null ? "" : value.toString();
   }
 }

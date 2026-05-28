@@ -62,4 +62,35 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
       @Param("difficulty") io.github.kstnnn.ai.interview.service.model.Difficulty difficulty,
       @Param("active") Boolean active,
       Pageable pageable);
+
+  @Query(
+      """
+      SELECT q FROM Question q JOIN FETCH q.technology t
+      WHERE (:technologyKey IS NULL OR t.key = :technologyKey)
+      AND (:difficulty IS NULL OR q.difficulty = :difficulty)
+      AND (:active IS NULL OR q.active = :active)
+      ORDER BY t.key, q.topic, q.subtopic, q.difficulty, q.externalId
+      """)
+  List<Question> findAdminQuestionsForExport(
+      @Param("technologyKey") String technologyKey,
+      @Param("difficulty") io.github.kstnnn.ai.interview.service.model.Difficulty difficulty,
+      @Param("active") Boolean active);
+
+  @Query(
+      """
+      SELECT q FROM Question q JOIN FETCH q.technology t
+      WHERE (LOWER(q.externalId) LIKE CONCAT('%', :search, '%')
+      OR LOWER(q.topic) LIKE CONCAT('%', :search, '%')
+      OR LOWER(COALESCE(q.subtopic, '')) LIKE CONCAT('%', :search, '%')
+      OR LOWER(q.questionText) LIKE CONCAT('%', :search, '%'))
+      AND (:technologyKey IS NULL OR t.key = :technologyKey)
+      AND (:difficulty IS NULL OR q.difficulty = :difficulty)
+      AND (:active IS NULL OR q.active = :active)
+      ORDER BY t.key, q.topic, q.subtopic, q.difficulty, q.externalId
+      """)
+  List<Question> findAdminQuestionsBySearchForExport(
+      @Param("search") String search,
+      @Param("technologyKey") String technologyKey,
+      @Param("difficulty") io.github.kstnnn.ai.interview.service.model.Difficulty difficulty,
+      @Param("active") Boolean active);
 }

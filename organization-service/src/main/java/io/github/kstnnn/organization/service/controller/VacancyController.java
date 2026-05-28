@@ -15,9 +15,13 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -121,11 +125,40 @@ public class VacancyController {
     return vacancyApplicationService.getVacancyApplications(jwt, vacancyId);
   }
 
+  @GetMapping(value = "/{vacancyId}/applications/export", produces = "text/csv")
+  public ResponseEntity<String> exportApplications(
+      @AuthenticationPrincipal Jwt jwt, @PathVariable UUID vacancyId) {
+    var csv = vacancyApplicationService.exportVacancyApplicationsCsv(jwt, vacancyId);
+    return ResponseEntity.ok()
+        .contentType(new MediaType("text", "csv"))
+        .header(HttpHeaders.CONTENT_DISPOSITION, attachment("vacancy-applications-%s.csv".formatted(vacancyId)))
+        .body(csv);
+  }
+
   @GetMapping("/{vacancyId}/applications/{applicationId}/report")
   public EmployerApplicationReportDto getApplicationReport(
       @AuthenticationPrincipal Jwt jwt,
       @PathVariable UUID vacancyId,
       @PathVariable UUID applicationId) {
     return vacancyApplicationService.getEmployerReport(jwt, vacancyId, applicationId);
+  }
+
+  @GetMapping(value = "/{vacancyId}/applications/{applicationId}/report/export", produces = "application/pdf")
+  public ResponseEntity<byte[]> exportApplicationReport(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID vacancyId,
+      @PathVariable UUID applicationId,
+      @org.springframework.web.bind.annotation.RequestParam(required = false) String language,
+      @org.springframework.web.bind.annotation.RequestHeader(name = "Accept-Language", required = false) String acceptLanguage) {
+    var pdf = vacancyApplicationService.exportEmployerReportPdf(
+        jwt, vacancyId, applicationId, language != null && !language.isBlank() ? language : acceptLanguage);
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_PDF)
+        .header(HttpHeaders.CONTENT_DISPOSITION, attachment("application-report-%s.pdf".formatted(applicationId)))
+        .body(pdf);
+  }
+
+  private String attachment(String filename) {
+    return ContentDisposition.attachment().filename(filename).build().toString();
   }
 }
