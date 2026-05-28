@@ -26,6 +26,15 @@ public class Technology {
   @Column(name = "display_name", nullable = false, length = 128)
   private String displayName;
 
+  @Column(name = "group_key", nullable = false, length = 64)
+  private String groupKey = "general";
+
+  @Column(name = "group_name", nullable = false, length = 128)
+  private String groupName = "General";
+
+  @Column(name = "sort_order", nullable = false)
+  private int sortOrder = 1000;
+
   @Column(nullable = false)
   private boolean active = true;
 }

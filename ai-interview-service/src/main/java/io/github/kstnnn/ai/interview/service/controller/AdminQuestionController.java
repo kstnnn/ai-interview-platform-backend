@@ -10,7 +10,11 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,6 +42,29 @@ public class AdminQuestionController {
     return adminQuestionService.listQuestions(search, technologyKey, difficulty, active, pageable);
   }
 
+  @GetMapping(value = "/export", produces = {"text/csv", "application/json"})
+  public ResponseEntity<?> exportQuestions(
+      @RequestParam(defaultValue = "csv") String format,
+      @RequestParam(required = false) String search,
+      @RequestParam(required = false) String technologyKey,
+      @RequestParam(required = false) Difficulty difficulty,
+      @RequestParam(required = false) Boolean active) {
+    var normalizedFormat = format == null ? "csv" : format.trim().toLowerCase();
+    if ("json".equals(normalizedFormat)) {
+      return ResponseEntity.ok()
+          .contentType(MediaType.APPLICATION_JSON)
+          .header(HttpHeaders.CONTENT_DISPOSITION, attachment("question-bank.json"))
+          .body(adminQuestionService.exportQuestions(search, technologyKey, difficulty, active));
+    }
+    if (!"csv".equals(normalizedFormat)) {
+      throw new IllegalArgumentException("Unsupported export format: " + format);
+    }
+    return ResponseEntity.ok()
+        .contentType(new MediaType("text", "csv"))
+        .header(HttpHeaders.CONTENT_DISPOSITION, attachment("question-bank.csv"))
+        .body(adminQuestionService.exportQuestionsCsv(search, technologyKey, difficulty, active));
+  }
+
   @GetMapping("/{questionId}")
   public AdminQuestionResponseDto getQuestion(@PathVariable UUID questionId) {
     return adminQuestionService.getQuestion(questionId);
@@ -63,5 +90,9 @@ public class AdminQuestionController {
   @PostMapping("/{questionId}/deactivate")
   public AdminQuestionResponseDto deactivateQuestion(@PathVariable UUID questionId) {
     return adminQuestionService.deactivateQuestion(questionId);
+  }
+
+  private String attachment(String filename) {
+    return ContentDisposition.attachment().filename(filename).build().toString();
   }
 }

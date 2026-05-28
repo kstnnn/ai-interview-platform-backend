@@ -18,4 +18,8 @@ public interface VacancyApplicationService {
   List<VacancyApplicationResponse> getVacancyApplications(Jwt jwt, UUID vacancyId);
 
   EmployerApplicationReportDto getEmployerReport(Jwt jwt, UUID vacancyId, UUID applicationId);
+
+  String exportVacancyApplicationsCsv(Jwt jwt, UUID vacancyId);
+
+  byte[] exportEmployerReportPdf(Jwt jwt, UUID vacancyId, UUID applicationId, String language);
 }

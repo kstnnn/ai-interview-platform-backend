@@ -18,4 +18,13 @@ public interface InterviewSessionTechnologyRepository
       order by ist.technology.key
       """)
   List<String> findTechnologyKeysBySessionId(@Param("sessionId") UUID sessionId);
+
+  @Query(
+      """
+      select ist.technology.displayName
+      from InterviewSessionTechnology ist
+      where ist.session.id = :sessionId
+      order by ist.technology.sortOrder, ist.technology.displayName
+      """)
+  List<String> findTechnologyDisplayNamesBySessionId(@Param("sessionId") UUID sessionId);
 }

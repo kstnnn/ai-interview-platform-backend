@@ -1,0 +1,22 @@
+[project]
+name = "voice-service"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.136.3",
+    "faster-whisper>=1.2.1",
+    "nvidia-cublas-cu12>=12.9.2.10",
+    "nvidia-cudnn-cu12>=9.22.0.52",
+    "omegaconf>=2.3.0",
+    "pydantic-settings>=2.14.1",
+    "python-multipart>=0.0.29",
+    "soundfile>=0.13.1",
+    "torch>=2.12.0",
+    "torchaudio>=2.11.0",
+    "uvicorn>=0.48.0",
+]
+
+[project.scripts]
+voice-service = "main:main"

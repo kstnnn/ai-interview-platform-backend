@@ -151,13 +151,14 @@ public class LearningRoadmapServiceImpl implements LearningRoadmapService {
   private List<LearningResourceDto> resources(
       String topic, String language, Set<String> technologyKeys) {
     var normalizedTopic = normalizeTopic(topic);
-    var resourceIdsByTag = matchingResourceIdsByTag(normalizedTopic);
+    var topicAliases = topicAliases(normalizedTopic);
+    var resourceIdsByTag = matchingResourceIdsByTag(topicAliases);
     var allowedFamilies = allowedTechnologyFamilies(technologyKeys);
     return learningResourceRepository.findByActiveTrueOrderByTopicAscTitleAsc().stream()
         .filter(resource -> isAllowedForTechnologyContext(resource, allowedFamilies))
-        .filter(resource -> matchesTopic(resource, normalizedTopic, resourceIdsByTag))
+        .filter(resource -> matchesTopic(resource, topicAliases, resourceIdsByTag))
         .sorted(
-            Comparator.comparing((LearningResource r) -> matchPriority(r, normalizedTopic, resourceIdsByTag))
+            Comparator.comparing((LearningResource r) -> matchPriority(r, topicAliases, resourceIdsByTag))
                 .thenComparing(r -> languagePriority(r, language))
                 .thenComparing(LearningResource::getTitle))
         .limit(3)
@@ -180,7 +181,7 @@ public class LearningRoadmapServiceImpl implements LearningRoadmapService {
   private boolean isAllowedForTechnologyContext(
       LearningResource resource, Set<String> allowedFamilies) {
     var family = resourceFamily(resource);
-    return family.equals("general") || allowedFamilies.contains(family);
+    return family.equals("general") || family.equals("security") || allowedFamilies.contains(family);
   }
 
   private Set<String> allowedTechnologyFamilies(Set<String> technologyKeys) {
@@ -191,9 +192,12 @@ public class LearningRoadmapServiceImpl implements LearningRoadmapService {
     }
     if (families.contains("java")) {
       families.add("spring");
+      families.add("database");
     }
     if (families.contains("spring")) {
       families.add("java");
+      families.add("database");
+      families.add("security");
     }
     if (families.contains("javascript")) {
       families.add("react");
@@ -228,7 +232,8 @@ public class LearningRoadmapServiceImpl implements LearningRoadmapService {
       case "django" -> "django";
       case "go", "golang" -> "go";
       case "csharp", "c", "dotnet", "net" -> value.equals("csharp") || value.equals("c") ? "csharp" : "dotnet";
-      case "sql", "postgresql", "database" -> "database";
+      case "sql", "postgresql", "database", "dataaccess", "jpa", "hibernate", "orm" -> "database";
+      case "security", "auth", "authentication", "authorization", "jwt", "oauth2", "springsecurity" -> "security";
       default -> isGeneralResourceFamily(value) ? "general" : value;
     };
   }
@@ -243,28 +248,51 @@ public class LearningRoadmapServiceImpl implements LearningRoadmapService {
             "devops",
             "systemdesign",
             "algorithms",
+            "security",
             "general")
         .contains(value);
   }
 
-  private java.util.Set<Long> matchingResourceIdsByTag(String topic) {
+  private Set<String> topicAliases(String topic) {
+    var aliases = new HashSet<String>();
+    aliases.add(topic);
+    switch (topic) {
+      case "dataaccess", "persistence", "repository", "repositories" -> {
+        aliases.addAll(Set.of("dataaccess", "database", "sql", "postgresql", "jpa", "hibernate", "orm", "transactions", "repository"));
+      }
+      case "languagebasics", "basics", "core", "syntax" -> {
+        aliases.addAll(Set.of("languagebasics", "java", "jvm", "oop", "collections", "streams", "exceptions", "javascript", "typescript", "python", "go", "csharp"));
+      }
+      case "security", "auth", "authentication", "authorization" -> {
+        aliases.addAll(Set.of("security", "auth", "authentication", "authorization", "jwt", "oauth2", "springsecurity", "owasp"));
+      }
+      case "springsecurity" -> aliases.addAll(Set.of("security", "springsecurity", "spring", "auth", "jwt", "oauth2"));
+      case "systemdesign", "architecture" -> aliases.addAll(Set.of("systemdesign", "architecture", "scalability", "microservices"));
+      default -> {
+      }
+    }
+    return aliases;
+  }
+
+  private java.util.Set<Long> matchingResourceIdsByTag(Set<String> topics) {
     return learningResourceTagRepository.findByResourceActiveTrue().stream()
-        .filter(tag -> tagMatches(normalizeTopic(tag.getTag()), topic))
+        .filter(tag -> topics.stream().anyMatch(topic -> tagMatches(normalizeTopic(tag.getTag()), topic)))
         .map(tag -> tag.getResource().getId())
         .collect(java.util.stream.Collectors.toSet());
   }
 
   private boolean matchesTopic(
-      LearningResource resource, String topic, java.util.Set<Long> resourceIdsByTag) {
-    return resourceIdsByTag.contains(resource.getId()) || topicMatches(resource, topic);
+      LearningResource resource, Set<String> topics, java.util.Set<Long> resourceIdsByTag) {
+    return resourceIdsByTag.contains(resource.getId())
+        || topics.stream().anyMatch(topic -> topicMatches(resource, topic));
   }
 
   private int matchPriority(
-      LearningResource resource, String topic, java.util.Set<Long> resourceIdsByTag) {
+      LearningResource resource, Set<String> topics, java.util.Set<Long> resourceIdsByTag) {
     if (resourceIdsByTag.contains(resource.getId())) {
       return 0;
     }
-    if (normalizeTopic(resource.getTopic()).equals(topic)) {
+    if (topics.contains(normalizeTopic(resource.getTopic()))) {
       return 1;
     }
     return 2;
