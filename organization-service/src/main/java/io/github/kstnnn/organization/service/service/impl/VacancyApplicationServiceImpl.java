@@ -13,6 +13,7 @@ import io.github.kstnnn.organization.service.dto.AiStartInterviewRequest;
 import io.github.kstnnn.organization.service.dto.CandidateContactsDto;
 import io.github.kstnnn.organization.service.dto.EmployerApplicationReportDto;
 import io.github.kstnnn.organization.service.dto.EmployerCandidateDto;
+import io.github.kstnnn.organization.service.dto.EmployerVacancyApplicationResponse;
 import io.github.kstnnn.organization.service.dto.VacancyApplicationResponse;
 import io.github.kstnnn.organization.service.dto.VacancyApplyRequest;
 import io.github.kstnnn.organization.service.exception.DuplicateApplicationException;
@@ -110,7 +111,7 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
 
   @Override
   @Transactional(readOnly = true)
-  public List<VacancyApplicationResponse> getVacancyApplications(Jwt jwt, UUID vacancyId) {
+  public List<EmployerVacancyApplicationResponse> getVacancyApplications(Jwt jwt, UUID vacancyId) {
     var user = currentUserService.requireActiveBusinessUser(jwt);
     var vacancy =
         vacancyRepository
@@ -118,7 +119,7 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
             .orElseThrow(() -> new ResourceNotFoundException("Vacancy not found"));
     organizationAccessService.requireWritableMember(vacancy.getOrganization().getId(), user.id());
     return vacancyApplicationRepository.findByVacancyIdOrderByCreatedAtDesc(vacancyId).stream()
-        .map(this::toResponse)
+        .map(this::toEmployerResponse)
         .toList();
   }
 
@@ -130,9 +131,6 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
     organizationAccessService.requireWritableMember(application.getVacancy().getOrganization().getId(), user.id());
     var report = aiInterviewClient.getReport(application.getInterviewSessionId());
     return new EmployerApplicationReportDto(
-        application.getId(),
-        application.getVacancy().getId(),
-        application.getInterviewSessionId(),
         toCandidate(application),
         effectiveStatus(application, report),
         report.sessionConfidence(),
@@ -152,9 +150,6 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
     appendCsvRow(
         csv,
         List.of(
-            "application_id",
-            "vacancy_id",
-            "candidate_user_id",
             "candidate_name",
             "contact_email",
             "phone",
@@ -164,21 +159,16 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
             "hh_resume_url",
             "status",
             "recommendation",
-            "session_confidence",
-            "interview_session_id",
+            "overall_score",
             "cover_letter",
-            "created_at",
+            "applied_at",
             "completed_at",
-            "updated_at",
-            "report_path"));
+            "updated_at"));
     for (var application : applications) {
       var contacts = application.candidateContacts();
       appendCsvRow(
           csv,
           List.of(
-              value(application.applicationId()),
-              value(application.vacancyId()),
-              value(application.candidateUserId()),
               value(application.candidateName()),
               contacts != null ? value(contacts.email()) : "",
               contacts != null ? value(contacts.phone()) : "",
@@ -188,13 +178,11 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
               contacts != null ? value(contacts.hhResumeUrl()) : "",
               value(application.status()),
               value(application.recommendation()),
-              value(application.sessionConfidence()),
-              value(application.interviewSessionId()),
+              percentText(application.sessionConfidence()),
               value(application.coverLetter()),
               value(application.createdAt()),
               value(application.completedAt()),
-              value(application.updatedAt()),
-              "/api/v1/vacancies/%s/applications/%s/report".formatted(vacancyId, application.applicationId())));
+              value(application.updatedAt())));
     }
     return csv.toString();
   }
@@ -281,6 +269,21 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
         application.getUpdatedAt());
   }
 
+  private EmployerVacancyApplicationResponse toEmployerResponse(VacancyApplication application) {
+    var report = safeReport(application.getInterviewSessionId());
+    return new EmployerVacancyApplicationResponse(
+        application.getId(),
+        candidateName(application),
+        toContacts(application),
+        effectiveStatus(application, report),
+        report != null ? report.sessionConfidence() : null,
+        report != null ? recommendation(report.sessionConfidence()) : null,
+        application.getCoverLetter(),
+        application.getCreatedAt(),
+        report != null ? report.finishedAt() : null,
+        application.getUpdatedAt());
+  }
+
   private AiInterviewReportDto safeReport(UUID interviewSessionId) {
     if (interviewSessionId == null) {
       return null;
@@ -316,10 +319,8 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
 
   private EmployerCandidateDto toCandidate(VacancyApplication application) {
     return new EmployerCandidateDto(
-        application.getCandidateUserId(),
         application.getCandidateFirstName(),
         application.getCandidateLastName(),
-        application.getCandidateEmail(),
         toContacts(application));
   }
 
@@ -381,7 +382,6 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
     document.add(new Paragraph(label(language, "Candidate", "Кандидат"), fonts.section()));
     var candidate = report.candidate();
     document.add(new Paragraph(label(language, "Name: ", "Имя: ") + empty(fullName(candidate), language), fonts.normal()));
-    document.add(new Paragraph(label(language, "Account email: ", "Email аккаунта: ") + empty(candidate != null ? candidate.email() : null, language), fonts.normal()));
     if (candidate != null && candidate.contacts() != null) {
       document.add(new Paragraph(label(language, "Contact email: ", "Контактный email: ") + empty(candidate.contacts().email(), language), fonts.normal()));
       document.add(new Paragraph(label(language, "Phone: ", "Телефон: ") + empty(candidate.contacts().phone(), language), fonts.normal()));
@@ -398,9 +398,6 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
     document.add(new Paragraph(label(language, "Overall score: ", "Итоговая оценка: ") + percent(report.sessionConfidence()), fonts.normal()));
     document.add(new Paragraph(label(language, "Applied at: ", "Дата отклика: ") + formatDate(report.createdAt(), language), fonts.normal()));
     document.add(new Paragraph(label(language, "Completed at: ", "Дата завершения: ") + formatDate(report.completedAt(), language), fonts.normal()));
-    document.add(new Paragraph(label(language, "Application ID: ", "ID отклика: ") + report.applicationId(), fonts.muted()));
-    document.add(new Paragraph(label(language, "Vacancy ID: ", "ID вакансии: ") + report.vacancyId(), fonts.muted()));
-    document.add(new Paragraph(label(language, "Interview session ID: ", "ID интервью: ") + report.interviewSessionId(), fonts.muted()));
     document.add(new Paragraph(" "));
 
     document.add(new Paragraph(label(language, "Topic Scores", "Оценка по темам"), fonts.section()));
@@ -450,6 +447,10 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
       return "-";
     }
     return Math.round(value.doubleValue() * 100.0) + "%";
+  }
+
+  private String percentText(Number value) {
+    return value == null ? "" : percent(value);
   }
 
   private String formatDate(Instant instant, ReportLanguage language) {
