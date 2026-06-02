@@ -13,6 +13,7 @@ import io.github.kstnnn.organization.service.dto.AiStartInterviewRequest;
 import io.github.kstnnn.organization.service.dto.CandidateContactsDto;
 import io.github.kstnnn.organization.service.dto.EmployerApplicationReportDto;
 import io.github.kstnnn.organization.service.dto.EmployerCandidateDto;
+import io.github.kstnnn.organization.service.dto.EmployerVacancyApplicationResponse;
 import io.github.kstnnn.organization.service.dto.VacancyApplicationResponse;
 import io.github.kstnnn.organization.service.dto.VacancyApplyRequest;
 import io.github.kstnnn.organization.service.exception.DuplicateApplicationException;
@@ -110,7 +111,7 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
 
   @Override
   @Transactional(readOnly = true)
-  public List<VacancyApplicationResponse> getVacancyApplications(Jwt jwt, UUID vacancyId) {
+  public List<EmployerVacancyApplicationResponse> getVacancyApplications(Jwt jwt, UUID vacancyId) {
     var user = currentUserService.requireActiveBusinessUser(jwt);
     var vacancy =
         vacancyRepository
@@ -118,7 +119,7 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
             .orElseThrow(() -> new ResourceNotFoundException("Vacancy not found"));
     organizationAccessService.requireWritableMember(vacancy.getOrganization().getId(), user.id());
     return vacancyApplicationRepository.findByVacancyIdOrderByCreatedAtDesc(vacancyId).stream()
-        .map(this::toResponse)
+        .map(this::toEmployerResponse)
         .toList();
   }
 
@@ -130,9 +131,6 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
     organizationAccessService.requireWritableMember(application.getVacancy().getOrganization().getId(), user.id());
     var report = aiInterviewClient.getReport(application.getInterviewSessionId());
     return new EmployerApplicationReportDto(
-        application.getId(),
-        application.getVacancy().getId(),
-        application.getInterviewSessionId(),
         toCandidate(application),
         effectiveStatus(application, report),
         report.sessionConfidence(),
@@ -145,40 +143,32 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
 
   @Override
   @Transactional(readOnly = true)
-  public String exportVacancyApplicationsCsv(Jwt jwt, UUID vacancyId) {
+  public String exportVacancyApplicationsCsv(Jwt jwt, UUID vacancyId, String language) {
     var applications = getVacancyApplications(jwt, vacancyId);
+    var reportLanguage = ReportLanguage.from(language);
     var csv = new StringBuilder();
     csv.append('\ufeff');
     appendCsvRow(
         csv,
         List.of(
-            "application_id",
-            "vacancy_id",
-            "candidate_user_id",
-            "candidate_name",
-            "contact_email",
-            "phone",
-            "telegram",
-            "linked_in",
-            "portfolio_url",
-            "hh_resume_url",
-            "status",
-            "recommendation",
-            "session_confidence",
-            "interview_session_id",
-            "cover_letter",
-            "created_at",
-            "completed_at",
-            "updated_at",
-            "report_path"));
+            label(reportLanguage, "Candidate name", "Имя кандидата"),
+            label(reportLanguage, "Email", "Email"),
+            label(reportLanguage, "Phone", "Телефон"),
+            "Telegram",
+            "LinkedIn",
+            label(reportLanguage, "Portfolio", "Портфолио"),
+            "HH",
+            label(reportLanguage, "Status", "Статус"),
+            label(reportLanguage, "Recommendation", "Рекомендация"),
+            label(reportLanguage, "Overall score", "Итоговая оценка"),
+            label(reportLanguage, "Cover letter", "Сопроводительное письмо"),
+            label(reportLanguage, "Applied at", "Дата отклика"),
+            label(reportLanguage, "Completed at", "Дата завершения")));
     for (var application : applications) {
       var contacts = application.candidateContacts();
       appendCsvRow(
           csv,
           List.of(
-              value(application.applicationId()),
-              value(application.vacancyId()),
-              value(application.candidateUserId()),
               value(application.candidateName()),
               contacts != null ? value(contacts.email()) : "",
               contacts != null ? value(contacts.phone()) : "",
@@ -186,15 +176,12 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
               contacts != null ? value(contacts.linkedIn()) : "",
               contacts != null ? value(contacts.portfolioUrl()) : "",
               contacts != null ? value(contacts.hhResumeUrl()) : "",
-              value(application.status()),
-              value(application.recommendation()),
-              value(application.sessionConfidence()),
-              value(application.interviewSessionId()),
+              statusCsv(application.status(), reportLanguage),
+              recommendationCsv(application.recommendation(), reportLanguage),
+              percentText(application.sessionConfidence()),
               value(application.coverLetter()),
-              value(application.createdAt()),
-              value(application.completedAt()),
-              value(application.updatedAt()),
-              "/api/v1/vacancies/%s/applications/%s/report".formatted(vacancyId, application.applicationId())));
+              csvDate(application.createdAt(), reportLanguage),
+              csvDate(application.completedAt(), reportLanguage)));
     }
     return csv.toString();
   }
@@ -281,6 +268,21 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
         application.getUpdatedAt());
   }
 
+  private EmployerVacancyApplicationResponse toEmployerResponse(VacancyApplication application) {
+    var report = safeReport(application.getInterviewSessionId());
+    return new EmployerVacancyApplicationResponse(
+        application.getId(),
+        candidateName(application),
+        toContacts(application),
+        effectiveStatus(application, report),
+        report != null ? report.sessionConfidence() : null,
+        report != null ? recommendation(report.sessionConfidence()) : null,
+        application.getCoverLetter(),
+        application.getCreatedAt(),
+        report != null ? report.finishedAt() : null,
+        application.getUpdatedAt());
+  }
+
   private AiInterviewReportDto safeReport(UUID interviewSessionId) {
     if (interviewSessionId == null) {
       return null;
@@ -316,10 +318,8 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
 
   private EmployerCandidateDto toCandidate(VacancyApplication application) {
     return new EmployerCandidateDto(
-        application.getCandidateUserId(),
         application.getCandidateFirstName(),
         application.getCandidateLastName(),
-        application.getCandidateEmail(),
         toContacts(application));
   }
 
@@ -381,7 +381,6 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
     document.add(new Paragraph(label(language, "Candidate", "Кандидат"), fonts.section()));
     var candidate = report.candidate();
     document.add(new Paragraph(label(language, "Name: ", "Имя: ") + empty(fullName(candidate), language), fonts.normal()));
-    document.add(new Paragraph(label(language, "Account email: ", "Email аккаунта: ") + empty(candidate != null ? candidate.email() : null, language), fonts.normal()));
     if (candidate != null && candidate.contacts() != null) {
       document.add(new Paragraph(label(language, "Contact email: ", "Контактный email: ") + empty(candidate.contacts().email(), language), fonts.normal()));
       document.add(new Paragraph(label(language, "Phone: ", "Телефон: ") + empty(candidate.contacts().phone(), language), fonts.normal()));
@@ -398,9 +397,6 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
     document.add(new Paragraph(label(language, "Overall score: ", "Итоговая оценка: ") + percent(report.sessionConfidence()), fonts.normal()));
     document.add(new Paragraph(label(language, "Applied at: ", "Дата отклика: ") + formatDate(report.createdAt(), language), fonts.normal()));
     document.add(new Paragraph(label(language, "Completed at: ", "Дата завершения: ") + formatDate(report.completedAt(), language), fonts.normal()));
-    document.add(new Paragraph(label(language, "Application ID: ", "ID отклика: ") + report.applicationId(), fonts.muted()));
-    document.add(new Paragraph(label(language, "Vacancy ID: ", "ID вакансии: ") + report.vacancyId(), fonts.muted()));
-    document.add(new Paragraph(label(language, "Interview session ID: ", "ID интервью: ") + report.interviewSessionId(), fonts.muted()));
     document.add(new Paragraph(" "));
 
     document.add(new Paragraph(label(language, "Topic Scores", "Оценка по темам"), fonts.section()));
@@ -452,6 +448,10 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
     return Math.round(value.doubleValue() * 100.0) + "%";
   }
 
+  private String percentText(Number value) {
+    return value == null ? "" : percent(value);
+  }
+
   private String formatDate(Instant instant, ReportLanguage language) {
     if (instant == null) {
       return "-";
@@ -459,6 +459,20 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
     var zone = ZoneId.systemDefault();
     var pattern = language == ReportLanguage.RU ? "dd.MM.yyyy HH:mm" : "yyyy-MM-dd HH:mm";
     return DateTimeFormatter.ofPattern(pattern).withZone(zone).format(instant);
+  }
+
+  private String csvDate(Instant instant, ReportLanguage language) {
+    return instant == null ? "" : formatDate(instant, language);
+  }
+
+  private String statusCsv(VacancyApplicationStatus status, ReportLanguage language) {
+    return status == null ? "" : statusLabel(status, language);
+  }
+
+  private String recommendationCsv(String recommendation, ReportLanguage language) {
+    return recommendation == null || recommendation.isBlank()
+        ? ""
+        : recommendationLabel(recommendation, language);
   }
 
   private String statusLabel(VacancyApplicationStatus status, ReportLanguage language) {

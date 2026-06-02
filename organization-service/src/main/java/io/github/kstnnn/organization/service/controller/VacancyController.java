@@ -2,6 +2,7 @@ package io.github.kstnnn.organization.service.controller;
 
 import io.github.kstnnn.organization.service.dto.PublicVacancyResponse;
 import io.github.kstnnn.organization.service.dto.EmployerApplicationReportDto;
+import io.github.kstnnn.organization.service.dto.EmployerVacancyApplicationResponse;
 import io.github.kstnnn.organization.service.dto.VacancyApplicationResponse;
 import io.github.kstnnn.organization.service.dto.VacancyApplyRequest;
 import io.github.kstnnn.organization.service.dto.VacancyQuestionRequest;
@@ -29,6 +30,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -120,15 +123,19 @@ public class VacancyController {
   }
 
   @GetMapping("/{vacancyId}/applications")
-  public List<VacancyApplicationResponse> getApplications(
+  public List<EmployerVacancyApplicationResponse> getApplications(
       @AuthenticationPrincipal Jwt jwt, @PathVariable UUID vacancyId) {
     return vacancyApplicationService.getVacancyApplications(jwt, vacancyId);
   }
 
   @GetMapping(value = "/{vacancyId}/applications/export", produces = "text/csv")
   public ResponseEntity<String> exportApplications(
-      @AuthenticationPrincipal Jwt jwt, @PathVariable UUID vacancyId) {
-    var csv = vacancyApplicationService.exportVacancyApplicationsCsv(jwt, vacancyId);
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID vacancyId,
+      @RequestParam(required = false) String language,
+      @RequestHeader(name = "Accept-Language", required = false) String acceptLanguage) {
+    var csv = vacancyApplicationService.exportVacancyApplicationsCsv(
+        jwt, vacancyId, language != null && !language.isBlank() ? language : acceptLanguage);
     return ResponseEntity.ok()
         .contentType(new MediaType("text", "csv"))
         .header(HttpHeaders.CONTENT_DISPOSITION, attachment("vacancy-applications-%s.csv".formatted(vacancyId)))
@@ -148,8 +155,8 @@ public class VacancyController {
       @AuthenticationPrincipal Jwt jwt,
       @PathVariable UUID vacancyId,
       @PathVariable UUID applicationId,
-      @org.springframework.web.bind.annotation.RequestParam(required = false) String language,
-      @org.springframework.web.bind.annotation.RequestHeader(name = "Accept-Language", required = false) String acceptLanguage) {
+      @RequestParam(required = false) String language,
+      @RequestHeader(name = "Accept-Language", required = false) String acceptLanguage) {
     var pdf = vacancyApplicationService.exportEmployerReportPdf(
         jwt, vacancyId, applicationId, language != null && !language.isBlank() ? language : acceptLanguage);
     return ResponseEntity.ok()
