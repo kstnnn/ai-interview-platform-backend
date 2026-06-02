@@ -20,7 +20,7 @@ public interface VacancyApplicationService {
 
   EmployerApplicationReportDto getEmployerReport(Jwt jwt, UUID vacancyId, UUID applicationId);
 
-  String exportVacancyApplicationsCsv(Jwt jwt, UUID vacancyId);
+  String exportVacancyApplicationsCsv(Jwt jwt, UUID vacancyId, String language);
 
   byte[] exportEmployerReportPdf(Jwt jwt, UUID vacancyId, UUID applicationId, String language);
 }

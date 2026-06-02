@@ -143,27 +143,27 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
 
   @Override
   @Transactional(readOnly = true)
-  public String exportVacancyApplicationsCsv(Jwt jwt, UUID vacancyId) {
+  public String exportVacancyApplicationsCsv(Jwt jwt, UUID vacancyId, String language) {
     var applications = getVacancyApplications(jwt, vacancyId);
+    var reportLanguage = ReportLanguage.from(language);
     var csv = new StringBuilder();
     csv.append('\ufeff');
     appendCsvRow(
         csv,
         List.of(
-            "candidate_name",
-            "contact_email",
-            "phone",
-            "telegram",
-            "linked_in",
-            "portfolio_url",
-            "hh_resume_url",
-            "status",
-            "recommendation",
-            "overall_score",
-            "cover_letter",
-            "applied_at",
-            "completed_at",
-            "updated_at"));
+            label(reportLanguage, "Candidate name", "Имя кандидата"),
+            label(reportLanguage, "Email", "Email"),
+            label(reportLanguage, "Phone", "Телефон"),
+            "Telegram",
+            "LinkedIn",
+            label(reportLanguage, "Portfolio", "Портфолио"),
+            "HH",
+            label(reportLanguage, "Status", "Статус"),
+            label(reportLanguage, "Recommendation", "Рекомендация"),
+            label(reportLanguage, "Overall score", "Итоговая оценка"),
+            label(reportLanguage, "Cover letter", "Сопроводительное письмо"),
+            label(reportLanguage, "Applied at", "Дата отклика"),
+            label(reportLanguage, "Completed at", "Дата завершения")));
     for (var application : applications) {
       var contacts = application.candidateContacts();
       appendCsvRow(
@@ -176,13 +176,12 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
               contacts != null ? value(contacts.linkedIn()) : "",
               contacts != null ? value(contacts.portfolioUrl()) : "",
               contacts != null ? value(contacts.hhResumeUrl()) : "",
-              value(application.status()),
-              value(application.recommendation()),
+              statusCsv(application.status(), reportLanguage),
+              recommendationCsv(application.recommendation(), reportLanguage),
               percentText(application.sessionConfidence()),
               value(application.coverLetter()),
-              value(application.createdAt()),
-              value(application.completedAt()),
-              value(application.updatedAt())));
+              csvDate(application.createdAt(), reportLanguage),
+              csvDate(application.completedAt(), reportLanguage)));
     }
     return csv.toString();
   }
@@ -460,6 +459,20 @@ public class VacancyApplicationServiceImpl implements VacancyApplicationService 
     var zone = ZoneId.systemDefault();
     var pattern = language == ReportLanguage.RU ? "dd.MM.yyyy HH:mm" : "yyyy-MM-dd HH:mm";
     return DateTimeFormatter.ofPattern(pattern).withZone(zone).format(instant);
+  }
+
+  private String csvDate(Instant instant, ReportLanguage language) {
+    return instant == null ? "" : formatDate(instant, language);
+  }
+
+  private String statusCsv(VacancyApplicationStatus status, ReportLanguage language) {
+    return status == null ? "" : statusLabel(status, language);
+  }
+
+  private String recommendationCsv(String recommendation, ReportLanguage language) {
+    return recommendation == null || recommendation.isBlank()
+        ? ""
+        : recommendationLabel(recommendation, language);
   }
 
   private String statusLabel(VacancyApplicationStatus status, ReportLanguage language) {
